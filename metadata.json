@@ -1,0 +1,6 @@
+{
+  "name": "Generador de Sopa de Letras — Crea, Aprende y Descubre",
+  "description": "Aplicación educativa para diseñar, personalizar, previsualizar y exportar sopas de letras tamaño carta con solucionario automático.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

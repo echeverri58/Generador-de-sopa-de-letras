@@ -1,0 +1,4441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de Sopa de Letras — Crea, Aprende y Descubre</title>
+  <meta name="description" content="Transforma tus ideas en actividades educativas. Diseña, personaliza y genera sopas de letras tamaño carta listas para imprimir con solucionario automático." />
+  <meta property="og:title" content="Generador de Sopa de Letras — Crea, Aprende y Descubre" />
+  <meta property="og:description" content="Aplicación educativa para diseñar, personalizar, previsualizar y exportar sopas de letras tamaño carta con solucionario automático." />
+  <meta property="og:type" content="website" />
+
+  <!-- Tipografías educativas legibles con respaldo local automático -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@500;600;700&family=Nunito:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Biblioteca jsPDF para exportación real a PDF tamaño carta (con respaldo CDN automático) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    if (!window.jspdf) {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"><\/script>');
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-canvas: #fbf9f6;
+      --bg-surface: #ffffff;
+      --bg-soft-beige: #f5efe6;
+      --bg-pastel-lilac: #f3eeff;
+      --bg-pastel-mint: #eafaf3;
+      --bg-pastel-sky: #e8f5fe;
+      --bg-pastel-rose: #fdf0f6;
+
+      --border-hairline: #e5e1da;
+      --border-strong: #cfc9be;
+
+      --text-primary: #1e2430;
+      --text-secondary: #4e5666;
+      --text-muted: #70788a;
+
+      --accent-lilac: #6d28d9;
+      --accent-lilac-hover: #5b21b6;
+      --accent-lilac-soft: #ddd6fe;
+      --accent-mint: #047857;
+      --accent-sky: #0369a1;
+      --accent-rose: #be185d;
+      --accent-amber: #b45309;
+      --accent-danger: #b91c1c;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-card: 0 1px 3px rgba(30, 36, 48, 0.05), 0 8px 24px rgba(30, 36, 48, 0.04);
+      --shadow-sheet: 0 10px 30px rgba(30, 36, 48, 0.12), 0 1px 4px rgba(30, 36, 48, 0.06);
+
+      --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --transition-fast: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 2px solid var(--accent-lilac);
+      outline-offset: 2px;
+    }
+
+    /* Encabezado superior de 3 zonas */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(255, 253, 249, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .topbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-link {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .topnav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .topnav::-webkit-scrollbar { display: none; }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      padding: 8px 4px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      border-bottom: 2px solid transparent;
+      transition: color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .nav-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-btn.active {
+      color: var(--accent-lilac);
+      border-bottom-color: var(--accent-lilac);
+    }
+
+    .topbar-cta {
+      flex-shrink: 0;
+    }
+
+    /* Botones reutilizables */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.2;
+      border: 1px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 40px;
+      transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), color var(--transition-fast);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent-lilac);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--accent-lilac-hover);
+    }
+
+    .btn-mint {
+      background: var(--bg-pastel-mint);
+      color: var(--accent-mint);
+      border-color: #a7f3d0;
+    }
+    .btn-mint:hover {
+      background: #d1fae5;
+    }
+
+    .btn-sky {
+      background: var(--bg-pastel-sky);
+      color: var(--accent-sky);
+      border-color: #bae6fd;
+    }
+    .btn-sky:hover {
+      background: #e0f2fe;
+    }
+
+    .btn-rose {
+      background: var(--bg-pastel-rose);
+      color: var(--accent-rose);
+      border-color: #fbcfe8;
+    }
+    .btn-rose:hover {
+      background: #fce7f3;
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-soft-beige);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border-color: transparent;
+    }
+    .btn-ghost:hover {
+      background: var(--bg-soft-beige);
+      color: var(--text-primary);
+    }
+
+    .btn-sm {
+      min-height: 34px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    /* Contenedor principal */
+    .app-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px 24px 48px;
+    }
+
+    /* Cabecera introductoria compacta */
+    .hero-banner {
+      background: linear-gradient(125deg, var(--bg-pastel-lilac) 0%, var(--bg-pastel-sky) 55%, var(--bg-pastel-mint) 100%);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hero-copy h1 {
+      margin: 0 0 4px;
+      font-family: var(--font-display);
+      font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      text-wrap: balance;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 14.5px;
+      max-width: 72ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Layout del editor en 2 columnas */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(380px, 500px) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    /* Pestañas internas del configurador */
+    .editor-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 12px;
+      background: var(--bg-soft-beige);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+
+    .ed-tab {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .ed-tab:hover {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text-primary);
+    }
+
+    .ed-tab.active {
+      background: var(--bg-surface);
+      color: var(--accent-lilac);
+      border-color: var(--border-hairline);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .editor-body {
+      padding: 20px;
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Formularios */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border-hairline);
+      margin: 20px 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .form-value-mono {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-lilac);
+    }
+
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 9px 12px;
+      background: #fffdfb;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--text-primary);
+      transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--accent-lilac);
+      background: #ffffff;
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 82px;
+    }
+
+    .input-color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 36px;
+      padding: 2px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-lilac);
+      cursor: pointer;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-hairline);
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 500;
+      user-select: none;
+      transition: background-color var(--transition-fast);
+    }
+
+    .check-row:hover {
+      background: var(--bg-soft-beige);
+    }
+
+    .check-row input[type="checkbox"], .check-row input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-lilac);
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .segmented {
+      display: flex;
+      background: var(--bg-soft-beige);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      gap: 4px;
+    }
+
+    .seg-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .seg-btn.active {
+      background: var(--bg-surface);
+      color: var(--accent-lilac);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Alertas y estados informativos */
+    .notice-box {
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .notice-info {
+      background: var(--bg-pastel-sky);
+      border-color: #bae6fd;
+      color: #0c4a6e;
+    }
+
+    .notice-success {
+      background: var(--bg-pastel-mint);
+      border-color: #a7f3d0;
+      color: #064e3b;
+    }
+
+    .notice-warn {
+      background: #fef3c7;
+      border-color: #fcd34d;
+      color: #78350f;
+    }
+
+    .notice-error {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #7f1d1d;
+    }
+
+    /* Lista interactiva de palabras */
+    .word-chips-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-sm);
+    }
+
+    .word-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .word-item.is-duplicate {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .word-item.is-unplaced {
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .word-item-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .word-index {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    .word-text {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .word-meta {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .word-remove {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .word-remove:hover {
+      background: #fee2e2;
+      color: var(--accent-danger);
+    }
+
+    /* Zona derecha: Vista Previa en tiempo real */
+    .preview-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-toolbar {
+      padding: 12px 18px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-hairline);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .preview-stats {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .preview-stats strong {
+      color: var(--text-primary);
+    }
+
+    .preview-stage {
+      background: #ebe6de;
+      padding: 24px;
+      min-height: 680px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: auto;
+    }
+
+    .paper-frame {
+      background: #ffffff;
+      box-shadow: var(--shadow-sheet);
+      border-radius: 2px;
+      transition: transform var(--transition-fast);
+      transform-origin: top center;
+      display: block;
+      max-width: 100%;
+    }
+
+    .paper-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Vistas secundarias (Vista Previa Completa, Mis Actividades, Plantillas, Acerca de) */
+    .view-section {
+      display: none;
+    }
+    .view-section.active {
+      display: block;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .item-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .item-card h3 {
+      margin: 0 0 6px;
+      font-family: var(--font-display);
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .item-meta {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .item-desc {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .item-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-hairline);
+    }
+
+    .theme-swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .swatch-card {
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: var(--bg-surface);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
+    }
+    .swatch-card:hover {
+      border-color: var(--accent-lilac);
+      transform: translateY(-2px);
+    }
+
+    .swatch-bar {
+      height: 28px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .swatch-bar span {
+      flex: 1;
+    }
+
+    /* Vista previa doble lado a lado */
+    .dual-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .sheet-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sheet-label {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Acerca de */
+    .about-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    .credit-box {
+      background: linear-gradient(135deg, var(--bg-pastel-lilac), var(--bg-pastel-mint));
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+
+    /* Footer de la aplicación */
+    .app-footer {
+      border-top: 1px solid var(--border-hairline);
+      background: var(--bg-surface);
+      padding: 20px 24px;
+      margin-top: 24px;
+    }
+
+    .footer-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+
+    /* Modal de confirmación sin window.confirm */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-hairline);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+      max-width: 440px;
+      width: 100%;
+      padding: 22px;
+    }
+
+    .modal-box h3 {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      font-size: 17px;
+    }
+
+    .modal-box p {
+      margin: 0 0 18px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Toast notifications */
+    .toast-stack {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 120;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 380px;
+    }
+
+    .toast {
+      background: var(--text-primary);
+      color: #ffffff;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+      font-size: 13.5px;
+      font-weight: 500;
+      animation: slideIn 180ms ease-out;
+    }
+    .toast.success { background: #065f46; }
+    .toast.error { background: #991b1b; }
+    .toast.warn { background: #92400e; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Área exclusiva de impresión directa */
+    #print-area {
+      display: none;
+    }
+
+    @media print {
+      @page {
+        size: letter;
+        margin: 0;
+      }
+      body > *:not(#print-area) {
+        display: none !important;
+      }
+      #print-area {
+        display: block !important;
+      }
+      .print-page {
+        width: 100%;
+        page-break-after: always;
+        break-after: page;
+        margin: 0;
+        padding: 0;
+      }
+      .print-page:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      .print-page img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+    }
+
+    /* Responsivo */
+    @media (max-width: 1080px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+      .editor-body {
+        max-height: none;
+      }
+      .about-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar-inner {
+        padding: 10px 14px;
+        gap: 12px;
+      }
+      .app-container {
+        padding: 14px 14px 36px;
+      }
+      .editor-tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .preview-stage {
+        padding: 12px;
+        min-height: 420px;
+      }
+      .dual-preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior de 3 zonas -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button type="button" class="brand-link" id="brand-home-btn">SopaEdu · Generador</button>
+
+      <nav class="topnav" aria-label="Navegación principal">
+        <button type="button" class="nav-btn active" data-view="editor">Editor</button>
+        <button type="button" class="nav-btn" data-view="preview">Vista Previa</button>
+        <button type="button" class="nav-btn" data-view="activities">Mis Actividades</button>
+        <button type="button" class="nav-btn" data-view="templates">Plantillas</button>
+        <button type="button" class="nav-btn" data-view="about">Acerca de</button>
+      </nav>
+
+      <div class="topbar-cta">
+        <button type="button" class="btn btn-primary" id="top-export-pdf-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-container">
+
+    <!-- Banner descriptivo -->
+    <section class="hero-banner">
+      <div class="hero-copy">
+        <h1>Generador de Sopa de Letras — Crea, Aprende y Descubre</h1>
+        <p>Transforma tus ideas en actividades educativas. Diseña, personaliza y genera sopas de letras listas para imprimir.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-mint btn-sm" id="quick-save-btn">Guardar actividad</button>
+        <button type="button" class="btn btn-sky btn-sm" id="quick-regen-btn">Nueva cuadrícula</button>
+        <button type="button" class="btn btn-rose btn-sm" id="quick-ab-btn">Versiones A y B</button>
+      </div>
+    </section>
+
+    <!-- VISTA 1: EDITOR + VISTA PREVIA EN TIEMPO REAL -->
+    <section id="view-editor" class="view-section active">
+      <div class="workspace-grid">
+
+        <!-- Panel izquierdo de configuración -->
+        <div class="panel-card">
+          <div class="editor-tabs" role="tablist" aria-label="Secciones de configuración">
+            <button type="button" class="ed-tab active" data-tab="actividad">1. Actividad</button>
+            <button type="button" class="ed-tab" data-tab="palabras">2. Palabras</button>
+            <button type="button" class="ed-tab" data-tab="generacion">3. Dificultad</button>
+            <button type="button" class="ed-tab" data-tab="cuadricula">4. Cuadrícula</button>
+            <button type="button" class="ed-tab" data-tab="encabezado">5. Encabezado</button>
+            <button type="button" class="ed-tab" data-tab="exportar">6. Exportar</button>
+          </div>
+
+          <div class="editor-body">
+
+            <!-- PESTAÑA 1: ACTIVIDAD -->
+            <div class="tab-pane active" id="tab-actividad">
+              <div class="section-title">
+                <span>Datos de la actividad</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="reset-config-btn">Restablecer</button>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label class="form-label" for="cfg-title">Título de la sopa de letras</label>
+                  <input type="text" class="input" id="cfg-title" placeholder="Ej. Ecosistemas y Biodiversidad" />
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label" for="cfg-subtitle">Subtítulo (opcional)</label>
+                  <input type="text" class="input" id="cfg-subtitle" placeholder="Ej. Actividad de repaso de Ciencias Naturales" />
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label" for="cfg-description">Descripción breve (opcional)</label>
+                  <textarea class="textarea" id="cfg-description" rows="2" placeholder="Contexto o propósito pedagógico de la actividad..."></textarea>
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label" for="cfg-instructions">
+                    <span>Instrucciones para resolverla</span>
+                    <button type="button" class="btn btn-sky btn-sm" id="auto-instructions-btn">Generar instrucciones</button>
+                  </label>
+                  <textarea class="textarea" id="cfg-instructions" rows="2" placeholder="Indicaciones para el estudiante..."></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-institution">Institución educativa</label>
+                  <input type="text" class="input" id="cfg-institution" placeholder="Ej. I.E. Central" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-creator">Nombre del creador / docente</label>
+                  <input type="text" class="input" id="cfg-creator" placeholder="Ej. Prof. Ana Martínez" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-subject">Área o asignatura</label>
+                  <input type="text" class="input" id="cfg-subject" placeholder="Ej. Biología" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-grade">Grado o nivel</label>
+                  <input type="text" class="input" id="cfg-grade" placeholder="Ej. Grado 7°" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-student">Nombre del estudiante</label>
+                  <input type="text" class="input" id="cfg-student" placeholder="Dejar vacío para línea imprimible" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-group">Grupo o curso</label>
+                  <input type="text" class="input" id="cfg-group" placeholder="Ej. 702 / Ficha 2890" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-date">Fecha</label>
+                  <input type="text" class="input" id="cfg-date" placeholder="Ej. 15/05/2026 o línea en blanco" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="cfg-show-student-line">Campos en blanco para estudiante</label>
+                  <label class="check-row">
+                    <input type="checkbox" id="cfg-show-student-line" />
+                    <span>Mostrar líneas para nombre/fecha</span>
+                  </label>
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label" for="cfg-footer-msg">Mensaje personalizado al pie de página</label>
+                  <input type="text" class="input" id="cfg-footer-msg" placeholder="Ej. ¡Éxitos en tu aprendizaje! Revisa cada palabra encontrada." />
+                </div>
+
+                <div class="form-group full">
+                  <label class="check-row">
+                    <input type="checkbox" id="cfg-footer-credit" />
+                    <span>Incluir crédito del desarrollador en el pie del PDF</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- PESTAÑA 2: PALABRAS -->
+            <div class="tab-pane" id="tab-palabras">
+              <div class="section-title">
+                <span>Modalidad y banco de palabras</span>
+                <span class="form-value-mono" id="word-count-badge">0 palabras</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cfg-size-mode">Tamaño de la sopa de letras</label>
+                <select class="select" id="cfg-size-mode">
+                  <option value="pequena">Pequeña (10 a 15 palabras)</option>
+                  <option value="mediana">Mediana (15 a 25 palabras)</option>
+                  <option value="grande">Grande (25 a 40 palabras)</option>
+                  <option value="personalizada">Personalizada (1 a 50 palabras)</option>
+                </select>
+              </div>
+
+              <div id="word-validation-banner" class="notice-box notice-info"></div>
+
+              <div class="form-group">
+                <label class="form-label" for="words-input">
+                  <span>Escribe o pega palabras (por línea o separadas por comas)</span>
+                </label>
+                <textarea class="textarea" id="words-input" rows="7" placeholder="FOTOSÍNTESIS&#10;ECOSISTEMA&#10;CLOROFILA, BIODIVERSIDAD, HÁBITAT"></textarea>
+              </div>
+
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="words-sort-az-btn">Orden A–Z</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="words-shuffle-btn">Orden aleatorio</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="words-dedupe-btn">Quitar repetidas</button>
+                <button type="button" class="btn btn-rose btn-sm" id="words-clear-btn">Limpiar lista</button>
+              </div>
+
+              <div class="form-group">
+                <span class="form-label">Palabras procesadas (se conservan tildes en el listado)</span>
+                <div id="word-chips-list" class="word-chips-wrap"></div>
+              </div>
+            </div>
+
+            <!-- PESTAÑA 3: GENERACIÓN Y DIFICULTAD -->
+            <div class="tab-pane" id="tab-generacion">
+              <div class="section-title">
+                <span>Nivel de dificultad y direcciones</span>
+                <button type="button" class="btn btn-primary btn-sm" id="regen-inside-btn">Generar nueva</button>
+              </div>
+
+              <div class="form-group">
+                <span class="form-label">Nivel de dificultad</span>
+                <div class="segmented" id="difficulty-segmented">
+                  <button type="button" class="seg-btn" data-diff="facil">Fácil</button>
+                  <button type="button" class="seg-btn" data-diff="intermedio">Intermedio</button>
+                  <button type="button" class="seg-btn" data-diff="dificil">Difícil</button>
+                  <button type="button" class="seg-btn" data-diff="personalizado">Manual</button>
+                </div>
+              </div>
+
+              <div class="form-grid" style="margin-top:12px;">
+                <label class="check-row">
+                  <input type="checkbox" id="dir-h-fwd" />
+                  <span>Horizontal (Izq → Der)</span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="dir-h-rev" />
+                  <span>Horizontal invertida (Der → Izq)</span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="dir-v-fwd" />
+                  <span>Vertical (Arriba → Abajo)</span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="dir-v-rev" />
+                  <span>Vertical invertida (Abajo → Arriba)</span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="dir-d-down" />
+                  <span>Diagonal descendente (↘ / ↙)</span>
+                </label>
+                <label class="check-row">
+                  <input type="checkbox" id="dir-d-up" />
+                  <span>Diagonal ascendente (↗ / ↖)</span>
+                </label>
+                <label class="check-row" style="grid-column: 1 / -1; background: var(--bg-pastel-lilac);">
+                  <input type="checkbox" id="dir-allow-reversed" />
+                  <span>Permitir palabras invertidas (lectura en sentido contrario)</span>
+                </label>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="section-title">
+                <span>Dimensiones de la cuadrícula</span>
+                <span class="form-value-mono" id="grid-dim-label">Auto</span>
+              </div>
+
+              <label class="check-row" style="margin-bottom:12px;">
+                <input type="checkbox" id="grid-auto-size" />
+                <span>Calcular filas y columnas automáticamente según hoja carta</span>
+              </label>
+
+              <div class="form-grid" id="manual-dims-box">
+                <div class="form-group">
+                  <label class="form-label" for="grid-rows">
+                    <span>Filas</span>
+                    <span class="form-value-mono" id="val-rows">16</span>
+                  </label>
+                  <input type="number" class="input" id="grid-rows" min="6" max="32" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="grid-cols">
+                    <span>Columnas</span>
+                    <span class="form-value-mono" id="val-cols">16</span>
+                  </label>
+                  <input type="number" class="input" id="grid-cols" min="6" max="32" />
+                </div>
+              </div>
+
+              <div id="generation-status-box"></div>
+
+              <div class="section-divider"></div>
+
+              <div class="section-title"><span>Estilos del solucionario</span></div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="sol-style">Tipo de resaltado</label>
+                  <select class="select" id="sol-style">
+                    <option value="capsule">Cápsulas pastel</option>
+                    <option value="cells">Celdas rellenas</option>
+                    <option value="line">Líneas / trazos</option>
+                    <option value="outline">Contornos / círculos</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="sol-multicolor">Colores</label>
+                  <label class="check-row">
+                    <input type="checkbox" id="sol-multicolor" />
+                    <span>Color distinto por palabra</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- PESTAÑA 4: CUADRÍCULA Y LISTADO -->
+            <div class="tab-pane" id="tab-cuadricula">
+              <div class="section-title"><span>Apariencia de la cuadrícula</span></div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="style-grid-font">Tipografía de letras</label>
+                  <select class="select" id="style-grid-font">
+                    <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial / Sans</option>
+                    <option value="'Nunito', sans-serif">Nunito (Infantil)</option>
+                    <option value="Georgia, serif">Georgia (Académica)</option>
+                    <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-grid-case">Mayúsculas / minúsculas</label>
+                  <select class="select" id="style-grid-case">
+                    <option value="upper">MAYÚSCULAS</option>
+                    <option value="lower">minúsculas</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-font-scale">
+                    <span>Tamaño de letras</span>
+                    <span class="form-value-mono" id="val-font-scale">100%</span>
+                  </label>
+                  <input type="range" id="style-font-scale" min="65" max="135" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-cell-scale">
+                    <span>Tamaño de celdas</span>
+                    <span class="form-value-mono" id="val-cell-scale">Auto</span>
+                  </label>
+                  <input type="range" id="style-cell-scale" min="65" max="100" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-letter-color">Color de letras</label>
+                  <div class="input-color-row">
+                    <input type="color" id="style-letter-color" />
+                    <span class="form-value-mono" id="hex-letter-color"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-cell-bg">Fondo de celdas</label>
+                  <div class="input-color-row">
+                    <input type="color" id="style-cell-bg" />
+                    <span class="form-value-mono" id="hex-cell-bg"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-border-color">Color de líneas</label>
+                  <div class="input-color-row">
+                    <input type="color" id="style-border-color" />
+                    <span class="form-value-mono" id="hex-border-color"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-border-width">
+                    <span>Grosor de bordes</span>
+                    <span class="form-value-mono" id="val-border-width">1 px</span>
+                  </label>
+                  <input type="range" id="style-border-width" min="0" max="3" step="0.5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-cell-gap">
+                    <span>Separación entre celdas</span>
+                    <span class="form-value-mono" id="val-cell-gap">0 px</span>
+                  </label>
+                  <input type="range" id="style-cell-gap" min="0" max="6" step="1" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="style-cell-radius">Esquinas de celdas</label>
+                  <select class="select" id="style-cell-radius">
+                    <option value="0">Rectas (0 px)</option>
+                    <option value="5">Suaves (5 px)</option>
+                    <option value="10">Redondeadas (10 px)</option>
+                  </select>
+                </div>
+
+                <label class="check-row">
+                  <input type="checkbox" id="style-grid-bold" />
+                  <span>Letras en negrita</span>
+                </label>
+
+                <label class="check-row">
+                  <input type="checkbox" id="style-show-borders" />
+                  <span>Mostrar bordes de cuadrícula</span>
+                </label>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="section-title"><span>Listado de palabras (debajo de la cuadrícula)</span></div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="list-cols">Columnas</label>
+                  <select class="select" id="list-cols">
+                    <option value="2">2 columnas</option>
+                    <option value="3">3 columnas</option>
+                    <option value="4">4 columnas</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="list-order">Orden en la hoja</label>
+                  <select class="select" id="list-order">
+                    <option value="alpha">Alfabético (A–Z)</option>
+                    <option value="random">Aleatorio</option>
+                    <option value="original">Orden original</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="list-marker">Indicador visual</label>
+                  <select class="select" id="list-marker">
+                    <option value="none">Sin viñeta</option>
+                    <option value="number">Numeración (1, 2, 3...)</option>
+                    <option value="bullet">Viñetas (•)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="list-font-size">
+                    <span>Tamaño de fuente</span>
+                    <span class="form-value-mono" id="val-list-font">11 px</span>
+                  </label>
+                  <input type="range" id="list-font-size" min="9" max="15" step="0.5" />
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label" for="list-spacing">
+                    <span>Espacio vertical entre palabras</span>
+                    <span class="form-value-mono" id="val-list-spacing">6 px</span>
+                  </label>
+                  <input type="range" id="list-spacing" min="2" max="14" step="1" />
+                </div>
+              </div>
+            </div>
+
+            <!-- PESTAÑA 5: ENCABEZADO E IMÁGENES -->
+            <div class="tab-pane" id="tab-encabezado">
+              <div class="section-title"><span>Imagen de fondo del encabezado</span></div>
+
+              <div class="form-group">
+                <label class="form-label" for="hdr-img-upload">Subir imagen local (JPG, PNG, WebP)</label>
+                <input type="file" class="input" id="hdr-img-upload" accept="image/jpeg,image/jpg,image/png,image/webp" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="hdr-theme-preset">O elegir fondo temático integrado</label>
+                <select class="select" id="hdr-theme-preset">
+                  <option value="none">Sin imagen (solo color de fondo)</option>
+                  <option value="naturaleza">Naturaleza y Ecología</option>
+                  <option value="ciencia">Ciencia y Laboratorio</option>
+                  <option value="matematicas">Matemáticas y Geometría</option>
+                  <option value="animales">Animales y Fauna</option>
+                  <option value="lectura">Lectura y Literatura</option>
+                  <option value="custom" disabled>Imagen cargada por usuario</option>
+                </select>
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="hdr-remove-img-btn">Quitar imagen y usar solo color</button>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="hdr-bg-color">Color base encabezado</label>
+                  <div class="input-color-row">
+                    <input type="color" id="hdr-bg-color" />
+                    <span class="form-value-mono" id="hex-hdr-bg"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-title-color">Color del título</label>
+                  <div class="input-color-row">
+                    <input type="color" id="hdr-title-color" />
+                    <span class="form-value-mono" id="hex-hdr-title"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-overlay-color">Capa de color transparente</label>
+                  <div class="input-color-row">
+                    <input type="color" id="hdr-overlay-color" />
+                    <span class="form-value-mono" id="hex-hdr-overlay"></span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-overlay-opacity">
+                    <span>Opacidad de capa</span>
+                    <span class="form-value-mono" id="val-hdr-overlay-op">25%</span>
+                  </label>
+                  <input type="range" id="hdr-overlay-opacity" min="0" max="90" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-img-opacity">
+                    <span>Opacidad de imagen</span>
+                    <span class="form-value-mono" id="val-hdr-img-op">85%</span>
+                  </label>
+                  <input type="range" id="hdr-img-opacity" min="10" max="100" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-height">
+                    <span>Altura del encabezado</span>
+                    <span class="form-value-mono" id="val-hdr-height">96 px</span>
+                  </label>
+                  <input type="range" id="hdr-height" min="68" max="165" step="4" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-width-mode">Ancho del encabezado</label>
+                  <select class="select" id="hdr-width-mode">
+                    <option value="content">Ancho de márgenes</option>
+                    <option value="full">Ancho completo de hoja</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-img-fit">Ajuste de imagen</label>
+                  <select class="select" id="hdr-img-fit">
+                    <option value="cover">Cubrir (Cover)</option>
+                    <option value="contain">Contener (Contain)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-img-pos-y">
+                    <span>Posición vertical imagen</span>
+                    <span class="form-value-mono" id="val-hdr-pos-y">50%</span>
+                  </label>
+                  <input type="range" id="hdr-img-pos-y" min="0" max="100" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-img-pos-x">
+                    <span>Posición horizontal imagen</span>
+                    <span class="form-value-mono" id="val-hdr-pos-x">50%</span>
+                  </label>
+                  <input type="range" id="hdr-img-pos-x" min="0" max="100" step="5" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-title-align">Alineación del título</label>
+                  <select class="select" id="hdr-title-align">
+                    <option value="left">Izquierda</option>
+                    <option value="center">Centro</option>
+                    <option value="right">Derecha</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-title-valign">Posición vertical título</label>
+                  <select class="select" id="hdr-title-valign">
+                    <option value="top">Superior</option>
+                    <option value="middle">Centro</option>
+                    <option value="bottom">Inferior</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-title-size">
+                    <span>Tamaño del título</span>
+                    <span class="form-value-mono" id="val-hdr-title-size">22 px</span>
+                  </label>
+                  <input type="range" id="hdr-title-size" min="14" max="32" step="1" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="hdr-title-font">Tipografía del encabezado</label>
+                  <select class="select" id="hdr-title-font">
+                    <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+                    <option value="'Nunito', sans-serif">Nunito</option>
+                    <option value="Georgia, serif">Georgia Serif</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="section-title"><span>Logotipo institucional independiente</span></div>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label class="form-label" for="hdr-logo-upload">Cargar logotipo propio (PNG, JPG, WebP)</label>
+                  <input type="file" class="input" id="hdr-logo-upload" accept="image/jpeg,image/jpg,image/png,image/webp" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="hdr-logo-pos">Ubicación del logotipo</label>
+                  <select class="select" id="hdr-logo-pos">
+                    <option value="left">Izquierda</option>
+                    <option value="right">Derecha</option>
+                  </select>
+                </div>
+                <div class="form-group" style="justify-content:flex-end;">
+                  <button type="button" class="btn btn-secondary btn-sm" id="hdr-remove-logo-btn">Quitar logotipo</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PESTAÑA 6: EXPORTAR Y PAPEL -->
+            <div class="tab-pane" id="tab-exportar">
+              <div class="section-title"><span>Configuración de hoja carta</span></div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="page-orientation">Orientación</label>
+                  <select class="select" id="page-orientation">
+                    <option value="portrait">Vertical (8.5 × 11 in)</option>
+                    <option value="landscape">Horizontal (11 × 8.5 in)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="page-margin">
+                    <span>Márgenes</span>
+                    <span class="form-value-mono" id="val-page-margin">12 mm</span>
+                  </label>
+                  <input type="range" id="page-margin" min="8" max="22" step="1" />
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+
+              <div class="section-title"><span>Opciones de exportación e impresión</span></div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <button type="button" class="btn btn-primary" id="exp-pdf-both">1. Descargar PDF completo (2 páginas)</button>
+                <button type="button" class="btn btn-sky" id="exp-pdf-act">2. Descargar solamente la actividad (PDF)</button>
+                <button type="button" class="btn btn-mint" id="exp-pdf-sol">3. Descargar solamente el solucionario (PDF)</button>
+                <button type="button" class="btn btn-secondary" id="exp-print-btn">4. Imprimir directamente</button>
+                <div class="form-grid" style="margin-top:4px;">
+                  <button type="button" class="btn btn-secondary btn-sm" id="exp-png-act">5. Actividad PNG</button>
+                  <button type="button" class="btn btn-secondary btn-sm" id="exp-png-sol">6. Solucionario PNG</button>
+                </div>
+              </div>
+
+              <div class="section-divider"></div>
+              <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                <button type="button" class="btn btn-rose btn-sm" id="clear-editor-btn">Limpiar editor</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Panel derecho: Vista Previa en tiempo real -->
+        <div class="panel-card preview-panel">
+          <div class="preview-toolbar">
+            <div class="segmented" style="max-width:290px;">
+              <button type="button" class="seg-btn active" id="prev-page-1-btn">Pág 1: Actividad</button>
+              <button type="button" class="seg-btn" id="prev-page-2-btn">Pág 2: Solucionario</button>
+            </div>
+
+            <div class="segmented" id="ab-version-switch" style="display:none; max-width:210px;">
+              <button type="button" class="seg-btn active" data-ab="A">Versión A</button>
+              <button type="button" class="seg-btn" data-ab="B">Versión B</button>
+            </div>
+
+            <div class="preview-stats" id="preview-stats-bar">
+              <span>Palabras: <strong id="stat-words">0</strong></span>
+              <span>·</span>
+              <span>Cuadrícula: <strong id="stat-dims">0×0</strong></span>
+              <span>·</span>
+              <span>Ocupación: <strong id="stat-occ">0%</strong></span>
+              <span>·</span>
+              <span>Dificultad: <strong id="stat-diff">Intermedio</strong></span>
+            </div>
+          </div>
+
+          <div id="preview-alert-strip" style="padding:0 18px;"></div>
+
+          <div class="preview-stage">
+            <div class="paper-frame" id="paper-frame-editor">
+              <canvas id="preview-canvas-main" class="paper-canvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VISTA 2: VISTA PREVIA COMPLETA (AMBAS PÁGINAS) -->
+    <section id="view-preview" class="view-section">
+      <div class="panel-card" style="padding:18px 22px; margin-bottom:20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;">
+        <div>
+          <h2 style="margin:0; font-family:var(--font-display); font-size:18px;">Vista Previa Completa — Tamaño Carta</h2>
+          <p style="margin:2px 0 0; font-size:13.5px; color:var(--text-secondary);">Verificación simultánea de la hoja de actividad y su solucionario exacto antes de exportar.</p>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <button type="button" class="btn btn-primary btn-sm" id="pv-dl-both">PDF completo (2 pág.)</button>
+          <button type="button" class="btn btn-sky btn-sm" id="pv-dl-act">Solo Actividad</button>
+          <button type="button" class="btn btn-mint btn-sm" id="pv-dl-sol">Solo Solucionario</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="pv-print">Imprimir</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="pv-png-act">PNG Actividad</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="pv-png-sol">PNG Solucionario</button>
+        </div>
+      </div>
+
+      <div class="dual-preview-grid">
+        <div class="sheet-column">
+          <div class="sheet-label">Página 1 — Sopa de Letras (Actividad)</div>
+          <div class="paper-frame" style="width:100%; max-width:560px;">
+            <canvas id="preview-canvas-p1" class="paper-canvas"></canvas>
+          </div>
+        </div>
+        <div class="sheet-column">
+          <div class="sheet-label">Página 2 — Hoja de Respuestas (Solucionario)</div>
+          <div class="paper-frame" style="width:100%; max-width:560px;">
+            <canvas id="preview-canvas-p2" class="paper-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 3: MIS ACTIVIDADES (LOCALSTORAGE) -->
+    <section id="view-activities" class="view-section">
+      <div class="panel-card" style="padding:20px 24px; margin-bottom:20px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;">
+        <div>
+          <h2 style="margin:0; font-family:var(--font-display); font-size:18px;">Mis Actividades Guardadas</h2>
+          <p style="margin:2px 0 0; font-size:13.5px; color:var(--text-secondary);">Almacenamiento local automático en tu navegador. Edita, duplica o crea nuevas versiones cuando lo necesites.</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="search" class="input" id="activities-search" placeholder="Buscar por título o área..." style="width:240px;" />
+          <button type="button" class="btn btn-primary" id="save-current-in-lib-btn">Guardar actividad actual</button>
+        </div>
+      </div>
+
+      <div id="activities-list-grid" class="cards-grid"></div>
+    </section>
+
+    <!-- VISTA 4: PLANTILLAS Y TEMAS VISUALES -->
+    <section id="view-templates" class="view-section">
+      <div class="panel-card" style="padding:20px 24px; margin-bottom:20px;">
+        <h2 style="margin:0 0 6px; font-family:var(--font-display); font-size:18px;">Modos y Temas Visuales</h2>
+        <p style="margin:0 0 16px; font-size:13.5px; color:var(--text-secondary);">Aplica instantáneamente una estética pastel o pedagógica a tu actividad conservando tus palabras actuales.</p>
+        <div class="theme-swatch-grid" id="visual-themes-grid"></div>
+      </div>
+
+      <div class="panel-card" style="padding:20px 24px;">
+        <h2 style="margin:0 0 6px; font-family:var(--font-display); font-size:18px;">Plantillas Educativas Prediseñadas</h2>
+        <p style="margin:0 0 16px; font-size:13.5px; color:var(--text-secondary);">Carga una actividad completa de ejemplo (incluyendo una prueba grande de 40 palabras) para adaptarla a tu clase.</p>
+        <div class="cards-grid" id="templates-cards-grid"></div>
+      </div>
+    </section>
+
+    <!-- VISTA 5: ACERCA DE -->
+    <section id="view-about" class="view-section">
+      <div class="about-layout">
+        <div class="panel-card" style="padding:24px;">
+          <h2 style="margin:0 0 10px; font-family:var(--font-display); font-size:20px;">Acerca de SopaEdu · Generador de Sopas de Letras</h2>
+          <p style="color:var(--text-secondary); margin:0 0 14px;">
+            Herramienta educativa diseñada para docentes, instructores y estudiantes que requieren crear sopas de letras personalizadas con acabado editorial, validación real de palabras y exportación fiel a tamaño carta con solucionario automático.
+          </p>
+          <h3 style="margin:18px 0 8px; font-family:var(--font-display); font-size:15.5px;">Capacidades principales</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--text-secondary); display:flex; flex-direction:column; gap:6px; font-size:14px;">
+            <li>Algoritmo con retroceso (backtracking) que prioriza cruces válidos y verifica que el 100% de las palabras queden ubicadas.</li>
+            <li>Soporte completo de tildes en el listado de palabras y normalización automática en la cuadrícula respetando la letra Ñ.</li>
+            <li>Generación de versiones A y B con las mismas palabras para evaluaciones en aula.</li>
+            <li>Solucionario exacto basado en las coordenadas registradas durante la generación, con cuatro estilos de resaltado.</li>
+            <li>Exportación directa a PDF de 2 páginas en tamaño carta, PNG en alta resolución e impresión directa.</li>
+            <li>Funcionamiento 100% local en un único archivo HTML sin servidores ni bases de datos externas.</li>
+          </ul>
+        </div>
+
+        <div class="credit-box">
+          <div style="font-size:12.5px; font-weight:700; color:var(--accent-lilac); margin-bottom:8px;">CRÉDITOS DE DESARROLLO</div>
+          <h3 style="margin:0 0 6px; font-family:var(--font-display); font-size:19px;">John Alexander Echeverry Ocampo</h3>
+          <p style="margin:0 0 14px; font-weight:600; color:var(--text-primary);">Instructor del SENA</p>
+          <p style="margin:0 0 16px; font-size:14px; color:var(--text-secondary);">
+            Aplicación desarrollada por John Alexander Echeverry Ocampo, Instructor del SENA, pensada como recurso didáctico gratuito y portátil para el aula.
+          </p>
+          <div style="border-top:1px solid rgba(0,0,0,0.08); padding-top:14px; font-size:13px; color:var(--text-secondary);">
+            Funciona directamente al abrir <strong>index.html</strong> en Google Chrome, Microsoft Edge o Mozilla Firefox. Todas las actividades guardadas permanecen en el almacenamiento local del navegador.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Pie de página de la aplicación -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div><strong>Generador de Sopa de Letras — Crea, Aprende y Descubre</strong></div>
+      <div>Desarrollado por: <strong>John Alexander Echeverry Ocampo</strong> · Instructor del SENA</div>
+    </div>
+  </footer>
+
+  <!-- Modal de confirmación accesible -->
+  <div class="modal-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+    <div class="modal-box">
+      <h3 id="confirm-modal-title">Confirmar acción</h3>
+      <p id="confirm-modal-msg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="confirm-cancel-btn">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm" id="confirm-ok-btn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de notificaciones toast -->
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <!-- Contenedor invisible en pantalla, exclusivo para impresión directa -->
+  <div id="print-area"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* =========================================================================
+       * 1. CONSTANTES, PALETAS Y PLANTILLAS EDUCATIVAS
+       * ========================================================================= */
+      const STORAGE_KEY_SAVED = 'sopaedu_activities_v1';
+      const STORAGE_KEY_DRAFT = 'sopaedu_current_draft_v1';
+
+      const SOLUTION_COLORS = [
+        'rgba(196, 181, 253, 0.55)', // lila pastel
+        'rgba(167, 243, 208, 0.58)', // menta pastel
+        'rgba(186, 230, 253, 0.58)', // azul cielo pastel
+        'rgba(251, 207, 232, 0.58)', // rosa pastel
+        'rgba(253, 230, 138, 0.58)', // amarillo suave
+        'rgba(254, 215, 170, 0.58)', // durazno suave
+        'rgba(199, 210, 254, 0.58)', // índigo pastel
+        'rgba(153, 246, 228, 0.55)'  // turquesa pastel
+      ];
+
+      const SOLUTION_STROKES = [
+        '#7c3aed', '#059669', '#0284c7', '#db2777',
+        '#d97706', '#ea580c', '#4f46e5', '#0d9488'
+      ];
+
+      const SPANISH_FILLER = 'AAAAAAAAABCDEEEEEEEFGHIIIIIJKLMNOOOOOOPQRSTUUUUUVWXYZÑ';
+
+      const SIZE_LIMITS = {
+        pequena: { label: 'Pequeña', min: 10, max: 15 },
+        mediana: { label: 'Mediana', min: 15, max: 25 },
+        grande: { label: 'Grande', min: 25, max: 40 },
+        personalizada: { label: 'Personalizada', min: 1, max: 50 }
+      };
+
+      const VISUAL_THEMES = [
+        {
+          id: 'infantil',
+          name: 'Modo Infantil',
+          desc: 'Colores alegres pastel, celdas redondeadas y letra amigable.',
+          swatches: ['#f3eeff', '#eafaf3', '#e8f5fe', '#fdf0f6'],
+          apply: {
+            gridFont: "'Nunito', sans-serif",
+            gridBold: true,
+            letterColor: '#2d2250',
+            cellBg: '#fdfcff',
+            borderColor: '#c4b5fd',
+            borderWidth: 1.5,
+            cellGap: 3,
+            cellRadius: 8,
+            showBorders: true,
+            headerBgColor: '#ede9fe',
+            headerTitleColor: '#4c1d95',
+            headerOverlayColor: '#f3eeff',
+            headerOverlayOpacity: 20,
+            headerTitleFont: "'Nunito', sans-serif"
+          }
+        },
+        {
+          id: 'academico',
+          name: 'Modo Académico',
+          desc: 'Estructura formal limpia, contraste alto y tipografía clásica.',
+          swatches: ['#1e293b', '#f8fafc', '#cbd5e1', '#334155'],
+          apply: {
+            gridFont: "Arial, Helvetica, sans-serif",
+            gridBold: true,
+            letterColor: '#0f172a',
+            cellBg: '#ffffff',
+            borderColor: '#64748b',
+            borderWidth: 1,
+            cellGap: 0,
+            cellRadius: 0,
+            showBorders: true,
+            headerBgColor: '#1e293b',
+            headerTitleColor: '#ffffff',
+            headerOverlayColor: '#0f172a',
+            headerOverlayOpacity: 35,
+            headerTitleFont: "Georgia, serif"
+          }
+        },
+        {
+          id: 'minimalista',
+          name: 'Modo Minimalista',
+          desc: 'Cuadrícula sin bordes, amplios espacios y estética despejada.',
+          swatches: ['#ffffff', '#f5efe6', '#334155', '#e2e8f0'],
+          apply: {
+            gridFont: "'Plus Jakarta Sans', sans-serif",
+            gridBold: false,
+            letterColor: '#1e2430',
+            cellBg: '#ffffff',
+            borderColor: '#e5e7eb',
+            borderWidth: 0.5,
+            cellGap: 2,
+            cellRadius: 4,
+            showBorders: false,
+            headerBgColor: '#f5efe6',
+            headerTitleColor: '#1e2430',
+            headerOverlayColor: '#ffffff',
+            headerOverlayOpacity: 15,
+            headerTitleFont: "'Plus Jakarta Sans', sans-serif"
+          }
+        },
+        {
+          id: 'menta',
+          name: 'Verde Menta Suave',
+          desc: 'Tonos menta y bosque serenos ideales para ciencias naturales.',
+          swatches: ['#d1fae5', '#ecfdf5', '#047857', '#a7f3d0'],
+          apply: {
+            gridFont: "'Plus Jakarta Sans', sans-serif",
+            gridBold: true,
+            letterColor: '#064e3b',
+            cellBg: '#f6fef9',
+            borderColor: '#6ee7b7',
+            borderWidth: 1,
+            cellGap: 2,
+            cellRadius: 6,
+            showBorders: true,
+            headerBgColor: '#d1fae5',
+            headerTitleColor: '#064e3b',
+            headerOverlayColor: '#ecfdf5',
+            headerOverlayOpacity: 25,
+            headerTitleFont: "'Plus Jakarta Sans', sans-serif"
+          }
+        },
+        {
+          id: 'cielo',
+          name: 'Azul Cielo Claro',
+          desc: 'Paleta celeste luminosa para lectura cómoda en clase.',
+          swatches: ['#e0f2fe', '#bae6fd', '#0369a1', '#f0f9ff'],
+          apply: {
+            gridFont: "'Plus Jakarta Sans', sans-serif",
+            gridBold: true,
+            letterColor: '#0c4a6e',
+            cellBg: '#f8fcff',
+            borderColor: '#7dd3fc',
+            borderWidth: 1,
+            cellGap: 1,
+            cellRadius: 4,
+            showBorders: true,
+            headerBgColor: '#e0f2fe',
+            headerTitleColor: '#0c4a6e',
+            headerOverlayColor: '#e0f2fe',
+            headerOverlayOpacity: 25,
+            headerTitleFont: "'Plus Jakarta Sans', sans-serif"
+          }
+        },
+        {
+          id: 'rosa',
+          name: 'Rosa Pastel Editorial',
+          desc: 'Tonos cálidos suaves con bordes delicados.',
+          swatches: ['#fce7f3', '#fbcfe8', '#9d174d', '#fff5f9'],
+          apply: {
+            gridFont: "'Nunito', sans-serif",
+            gridBold: true,
+            letterColor: '#500724',
+            cellBg: '#fffafd',
+            borderColor: '#f9a8d4',
+            borderWidth: 1,
+            cellGap: 2,
+            cellRadius: 6,
+            showBorders: true,
+            headerBgColor: '#fce7f3',
+            headerTitleColor: '#831843',
+            headerOverlayColor: '#fdf2f8',
+            headerOverlayOpacity: 20,
+            headerTitleFont: "'Plus Jakarta Sans', sans-serif"
+          }
+        }
+      ];
+
+      const EDUCATIONAL_TEMPLATES = [
+        {
+          id: 'tpl-ciencias',
+          title: 'Ecosistemas y Biodiversidad',
+          subtitle: 'Actividad de Ciencias Naturales',
+          subject: 'Ciencias Naturales',
+          grade: 'Grado 6°',
+          sizeMode: 'pequena',
+          difficulty: 'intermedio',
+          themePreset: 'naturaleza',
+          description: 'Explora los conceptos clave sobre las relaciones entre seres vivos y su entorno natural.',
+          words: [
+            'ECOSISTEMA', 'BIODIVERSIDAD', 'FOTOSÍNTESIS', 'HÁBITAT', 'FAUNA',
+            'FLORA', 'CLOROFILA', 'OXÍGENO', 'BOSQUE', 'HUMEDAL',
+            'CADENA', 'ENERGÍA'
+          ]
+        },
+        {
+          id: 'tpl-matematicas',
+          title: 'Geometría y Medición',
+          subtitle: 'Taller de Matemáticas Básicas',
+          subject: 'Matemáticas',
+          grade: 'Grado 7°',
+          sizeMode: 'mediana',
+          difficulty: 'intermedio',
+          themePreset: 'matematicas',
+          description: 'Identifica figuras planas, propiedades espaciales y unidades fundamentales.',
+          words: [
+            'TRIÁNGULO', 'CUADRADO', 'RECTÁNGULO', 'CÍRCULO', 'PERÍMETRO',
+            'DIÁMETRO', 'RADIO', 'ÁNGULO', 'VÉRTICE', 'PARALELA',
+            'SIMETRÍA', 'POLÍGONO', 'HIPOTENUSA', 'ÁREA', 'VOLUMEN',
+            'TRAPECIO', 'ROMBO', 'DIAGONAL'
+          ]
+        },
+        {
+          id: 'tpl-tecnologia',
+          title: 'Desarrollo de Software y Algoritmos',
+          subtitle: 'Fundamentos de Programación',
+          subject: 'Tecnología e Informática',
+          grade: 'Formación Técnica',
+          sizeMode: 'mediana',
+          difficulty: 'dificil',
+          themePreset: 'ciencia',
+          description: 'Vocabulario técnico esencial para comprender la lógica computacional.',
+          words: [
+            'ALGORITMO', 'VARIABLE', 'FUNCIÓN', 'COMPILADOR', 'NAVEGADOR',
+            'INTERFAZ', 'BASEDEDATOS', 'SERVIDOR', 'PROTOCOLO', 'ARREGLO',
+            'OBJETO', 'CLASE', 'BUCLE', 'CONDICIONAL', 'ETIQUETA',
+            'DEPURACIÓN', 'REPOSITORIO', 'LÓGICA', 'SINTAXIS', 'MEMORIA'
+          ]
+        },
+        {
+          id: 'tpl-espanol',
+          title: 'Géneros y Figuras Literarias',
+          subtitle: 'Comprensión y Expresión Escrita',
+          subject: 'Lengua Castellana',
+          grade: 'Grado 8°',
+          sizeMode: 'pequena',
+          difficulty: 'facil',
+          themePreset: 'lectura',
+          description: 'Reconoce los principales recursos estilísticos y géneros de la literatura.',
+          words: [
+            'METÁFORA', 'SÍMIL', 'HIPÉRBOLE', 'POESÍA', 'NOVELA',
+            'CUENTO', 'FÁBULA', 'NARRADOR', 'VERSO', 'ESTROFA'
+          ]
+        },
+        {
+          id: 'tpl-grande-40',
+          title: 'Gran Reto Ambiental y Planeta Tierra',
+          subtitle: 'Actividad Integral de 40 Términos',
+          subject: 'Educación Ambiental',
+          grade: 'Grado 9° – 11°',
+          sizeMode: 'grande',
+          difficulty: 'dificil',
+          themePreset: 'naturaleza',
+          description: 'Actividad extensa de 40 palabras para afianzar conceptos de sostenibilidad y cuidado ambiental.',
+          words: [
+            'ECOLOGÍA', 'RECICLAJE', 'SOSTENIBLE', 'ATMOSFERA', 'BIOSFERA',
+            'HIDROSFERA', 'GLACIAR', 'OCÉANO', 'SELVA', 'PÁRAMO',
+            'MANGLAR', 'ARRECIFE', 'ESTUARIO', 'EROSIÓN', 'DEFORESTAR',
+            'COMPOSTAJE', 'BIOMASA', 'SOLAR', 'EÓLICA', 'GEOTÉRMICA',
+            'CARBONO', 'OZONO', 'LLUVIA', 'SEQUÍA', 'CLIMA',
+            'BIOMA', 'ESPECIE', 'ENDÉMICA', 'EXTINCIÓN', 'RESERVA',
+            'PARQUE', 'CUENCA', 'ACUÍFERO', 'POLINIZAR', 'SEMILLA',
+            'RAÍZ', 'CORTEZA', 'OXIDAR', 'MINERAL', 'PLANETA'
+          ]
+        }
+      ];
+
+      /* =========================================================================
+       * 2. GENERADOR DE FONDOS TEMÁTICOS (SIN DEPENDENCIAS EXTERNAS)
+       * ========================================================================= */
+      const presetImageCache = {};
+
+      function getThematicHeaderDataUrl(presetName) {
+        if (!presetName || presetName === 'none') return '';
+        if (presetImageCache[presetName]) return presetImageCache[presetName];
+
+        const w = 1200;
+        const h = 320;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
+        const palettes = {
+          naturaleza: { c1: '#d1fae5', c2: '#a7f3d0', c3: '#bae6fd', ink: 'rgba(6, 95, 70, 0.14)' },
+          ciencia: { c1: '#e0f2fe', c2: '#ddd6fe', c3: '#c7d2fe', ink: 'rgba(30, 64, 175, 0.14)' },
+          matematicas: { c1: '#ede9fe', c2: '#fce7f3', c3: '#e0f2fe', ink: 'rgba(109, 40, 217, 0.14)' },
+          animales: { c1: '#fef3c7', c2: '#d1fae5', c3: '#fed7aa', ink: 'rgba(146, 64, 14, 0.14)' },
+          lectura: { c1: '#fce7f3', c2: '#f5efe6', c3: '#ede9fe', ink: 'rgba(157, 23, 77, 0.14)' }
+        };
+
+        const pal = palettes[presetName] || palettes.naturaleza;
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, pal.c1);
+        grad.addColorStop(0.55, pal.c2);
+        grad.addColorStop(1, pal.c3);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Motivos geométricos suaves según temática
+        ctx.strokeStyle = pal.ink;
+        ctx.fillStyle = pal.ink;
+        ctx.lineWidth = 3;
+
+        if (presetName === 'matematicas') {
+          for (let i = 0; i < 14; i++) {
+            const x = 60 + i * 88;
+            const y = 60 + (i % 3) * 85;
+            ctx.beginPath();
+            if (i % 3 === 0) {
+              ctx.arc(x, y, 36, 0, Math.PI * 2);
+              ctx.stroke();
+            } else if (i % 3 === 1) {
+              ctx.moveTo(x, y - 34);
+              ctx.lineTo(x + 34, y + 26);
+              ctx.lineTo(x - 34, y + 26);
+              ctx.closePath();
+              ctx.stroke();
+            } else {
+              ctx.strokeRect(x - 28, y - 28, 56, 56);
+            }
+          }
+        } else if (presetName === 'ciencia') {
+          for (let i = 0; i < 10; i++) {
+            const cx = 90 + i * 115;
+            const cy = 160 + (i % 2 === 0 ? -40 : 40);
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 52, 20, Math.PI / 5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 52, 20, -Math.PI / 5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (presetName === 'naturaleza' || presetName === 'animales') {
+          for (let i = 0; i < 16; i++) {
+            const cx = 45 + i * 76;
+            const cy = 90 + (i % 2) * 120;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 42, 18, (i % 4) * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          for (let i = 0; i < 18; i++) {
+            const cx = 40 + i * 68;
+            const cy = 70 + (i % 3) * 90;
+            ctx.beginPath();
+            ctx.roundRect(cx - 24, cy - 18, 48, 36, 8);
+            ctx.stroke();
+          }
+        }
+
+        const dataUrl = canvas.toDataURL('image/png');
+        presetImageCache[presetName] = dataUrl;
+        return dataUrl;
+      }
+
+      /* =========================================================================
+       * 3. ESTADO GLOBAL Y PERSISTENCIA
+       * ========================================================================= */
+      function createDefaultState() {
+        return {
+          id: null,
+          versionLabel: 'A',
+          meta: {
+            title: 'Ecosistemas y Biodiversidad',
+            subtitle: 'Actividad de Ciencias Naturales',
+            description: 'Encuentra en la cuadrícula los términos fundamentales sobre los ecosistemas.',
+            instructions: 'Lee con atención el banco de palabras ubicado en la parte inferior. Encierra o resalta cada término en la sopa de letras; pueden aparecer en sentido horizontal, vertical o diagonal.',
+            creator: '',
+            institution: '',
+            subject: 'Ciencias Naturales',
+            grade: 'Grado 6°',
+            student: '',
+            group: '',
+            date: '',
+            showStudentLines: true,
+            footerMessage: '¡Éxitos en tu aprendizaje! Revisa cada palabra encontrada.',
+            includeDevCredit: true
+          },
+          wordsConfig: {
+            rawText: [
+              'ECOSISTEMA', 'BIODIVERSIDAD', 'FOTOSÍNTESIS', 'HÁBITAT',
+              'FAUNA', 'FLORA', 'CLOROFILA', 'OXÍGENO',
+              'BOSQUE', 'HUMEDAL', 'CADENA', 'ENERGÍA'
+            ].join('\n'),
+            sizeMode: 'pequena'
+          },
+          generation: {
+            difficulty: 'intermedio',
+            dirs: {
+              hFwd: true,
+              hRev: false,
+              vFwd: true,
+              vRev: false,
+              dDown: true,
+              dUp: true,
+              allowReversed: false
+            },
+            autoSize: true,
+            manualRows: 15,
+            manualCols: 16
+          },
+          gridStyle: {
+            gridFont: "'Plus Jakarta Sans', sans-serif",
+            gridCase: 'upper',
+            fontScale: 100,
+            cellScale: 100,
+            letterColor: '#1e2430',
+            cellBg: '#ffffff',
+            borderColor: '#cbd5e1',
+            borderWidth: 1,
+            cellGap: 0,
+            cellRadius: 0,
+            gridBold: true,
+            showBorders: true
+          },
+          wordListStyle: {
+            cols: 3,
+            order: 'alpha',
+            marker: 'bullet',
+            fontSize: 11,
+            spacing: 6
+          },
+          solutionStyle: {
+            type: 'capsule',
+            multicolor: true
+          },
+          headerStyle: {
+            themePreset: 'naturaleza',
+            imageDataUrl: '',
+            logoDataUrl: '',
+            logoPos: 'left',
+            bgColor: '#ede9fe',
+            titleColor: '#1e2430',
+            overlayColor: '#ffffff',
+            overlayOpacity: 20,
+            imageOpacity: 85,
+            height: 96,
+            widthMode: 'content',
+            imgFit: 'cover',
+            imgPosX: 50,
+            imgPosY: 50,
+            titleAlign: 'center',
+            titleValign: 'middle',
+            titleSize: 22,
+            titleFont: "'Plus Jakarta Sans', sans-serif"
+          },
+          page: {
+            orientation: 'portrait',
+            marginMm: 12
+          },
+          puzzle: null,
+          abPuzzles: null,
+          activeAB: 'A'
+        };
+      }
+
+      let state = createDefaultState();
+      let currentView = 'editor';
+      let currentPreviewPage = 1; // 1 = Actividad, 2 = Solucionario
+      const loadedImagesMap = new Map(); // Caché de Image() para DataURLs
+
+      function deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+      }
+
+      function saveDraftToStorage() {
+        try {
+          localStorage.setItem(STORAGE_KEY_DRAFT, JSON.stringify(state));
+        } catch (err) {
+          // Si excede cuota por imagen muy grande, intentamos guardar sin imágenes en el borrador automático
+          try {
+            const slim = deepClone(state);
+            slim.headerStyle.imageDataUrl = '';
+            slim.headerStyle.logoDataUrl = '';
+            localStorage.setItem(STORAGE_KEY_DRAFT, JSON.stringify(slim));
+          } catch (_) { /* noop */ }
+        }
+      }
+
+      function loadDraftFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_DRAFT);
+          if (!raw) return false;
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.meta && parsed.wordsConfig) {
+            state = mergeDefaults(createDefaultState(), parsed);
+            return true;
+          }
+        } catch (_) { /* noop */ }
+        return false;
+      }
+
+      function mergeDefaults(base, patch) {
+        const out = deepClone(base);
+        for (const k of Object.keys(patch)) {
+          if (patch[k] && typeof patch[k] === 'object' && !Array.isArray(patch[k]) && out[k] && typeof out[k] === 'object') {
+            out[k] = mergeDefaults(out[k], patch[k]);
+          } else {
+            out[k] = patch[k];
+          }
+        }
+        return out;
+      }
+
+      function getSavedActivities() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_SAVED);
+          const list = raw ? JSON.parse(raw) : [];
+          return Array.isArray(list) ? list : [];
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function setSavedActivities(list) {
+        localStorage.setItem(STORAGE_KEY_SAVED, JSON.stringify(list));
+      }
+
+      /* =========================================================================
+       * 4. MOTOR DE PALABRAS (VALIDACIÓN, NORMALIZACIÓN Y LIMPIEZA)
+       * ========================================================================= */
+      function normalizeLetterForGrid(str) {
+        // Conserva Ñ/ñ intacta; normaliza vocales con tilde o diéresis; elimina espacios y signos
+        const upper = String(str || '').toUpperCase().trim();
+        let res = '';
+        for (const ch of upper) {
+          if (ch === 'Ñ') { res += 'Ñ'; continue; }
+          if ('ÁÀÄÂ'.includes(ch)) { res += 'A'; continue; }
+          if ('ÉÈËÊ'.includes(ch)) { res += 'E'; continue; }
+          if ('ÍÌÏÎ'.includes(ch)) { res += 'I'; continue; }
+          if ('ÓÒÖÔ'.includes(ch)) { res += 'O'; continue; }
+          if ('ÚÙÜÛ'.includes(ch)) { res += 'U'; continue; }
+          if (ch >= 'A' && ch <= 'Z') { res += ch; }
+        }
+        return res;
+      }
+
+      function parseWordsInput(rawText) {
+        // Permite separar por saltos de línea, comas, punto y coma o tabulaciones
+        const tokens = String(rawText || '')
+          .split(/[\n\r,;\t]+/)
+          .map(s => s.replace(/\s+/g, ' ').trim())
+          .filter(Boolean);
+
+        const seen = new Set();
+        const items = [];
+        let duplicateCount = 0;
+        let invalidCount = 0;
+        let tooLongCount = 0;
+
+        for (const token of tokens) {
+          const display = token.toUpperCase();
+          const gridWord = normalizeLetterForGrid(display);
+          const hasInvalidChars = /[^A-ZÁÉÍÓÚÜÑ\s]/i.test(token);
+          const isDuplicate = seen.has(gridWord);
+          const isTooShort = gridWord.length < 2;
+          const isTooLong = gridWord.length > 26;
+
+          if (isDuplicate && gridWord.length > 0) duplicateCount++;
+          if (hasInvalidChars || isTooShort) invalidCount++;
+          if (isTooLong) tooLongCount++;
+
+          if (gridWord.length > 0) seen.add(gridWord);
+
+          items.push({
+            display,
+            gridWord,
+            hasInvalidChars,
+            isDuplicate,
+            isTooShort,
+            isTooLong
+          });
+        }
+
+        const uniqueValid = items.filter(it => !it.isDuplicate && !it.isTooShort && !it.isTooLong && it.gridWord.length >= 2);
+        return { items, uniqueValid, duplicateCount, invalidCount, tooLongCount };
+      }
+
+      /* =========================================================================
+       * 5. MOTOR DE GENERACIÓN DE SOPA DE LETRAS (BACKTRACKING + VERIFICACIÓN)
+       * ========================================================================= */
+      function getActiveDirectionVectors(dirs) {
+        const vectors = [];
+        if (dirs.hFwd) vectors.push({ dr: 0, dc: 1, label: 'H→' });
+        if (dirs.vFwd) vectors.push({ dr: 1, dc: 0, label: 'V↓' });
+        if (dirs.dDown) vectors.push({ dr: 1, dc: 1, label: 'D↘' });
+        if (dirs.dUp) vectors.push({ dr: -1, dc: 1, label: 'D↗' });
+
+        if (dirs.allowReversed) {
+          if (dirs.hRev) vectors.push({ dr: 0, dc: -1, label: 'H←' });
+          if (dirs.vRev) vectors.push({ dr: -1, dc: 0, label: 'V↑' });
+          if (dirs.dDown) vectors.push({ dr: 1, dc: -1, label: 'D↙' });
+          if (dirs.dUp) vectors.push({ dr: -1, dc: -1, label: 'D↖' });
+        } else {
+          // Si el usuario marcó manualmente hRev o vRev aunque allowReversed estuviera off,
+          // respetamos la dirección explícita solo si allowReversed está activo;
+          // sincronizaremos el UI para que sean consistentes.
+          if (dirs.hRev) vectors.push({ dr: 0, dc: -1, label: 'H←' });
+          if (dirs.vRev) vectors.push({ dr: -1, dc: 0, label: 'V↑' });
+        }
+
+        return vectors;
+      }
+
+      function computeAutoGridDimensions(validWords, difficulty, orientation) {
+        const count = validWords.length;
+        const maxLen = validWords.reduce((m, w) => Math.max(m, w.gridWord.length), 6);
+        const totalChars = validWords.reduce((s, w) => s + w.gridWord.length, 0);
+
+        // Multiplicador según dificultad: fácil más espaciado, difícil más compacto/denso
+        const densityFactor = difficulty === 'facil' ? 2.15 : (difficulty === 'dificil' ? 1.52 : 1.78);
+        const minSideByCount = count >= 35 ? 21 : count >= 25 ? 19 : count >= 15 ? 16 : 12;
+        const targetCells = Math.max(minSideByCount * minSideByCount, Math.ceil(totalChars * densityFactor));
+
+        // Relación de aspecto favorable para aprovechar el máximo ancho de hoja carta
+        const ratio = orientation === 'landscape' ? 1.32 : 1.18;
+        let cols = Math.ceil(Math.sqrt(targetCells * ratio));
+        let rows = Math.ceil(targetCells / cols);
+
+        cols = Math.max(cols, maxLen + 2, minSideByCount);
+        rows = Math.max(rows, maxLen + 1, minSideByCount - 1);
+
+        // Límites técnicos seguros para legibilidad en hoja carta
+        cols = Math.min(30, Math.max(8, cols));
+        rows = Math.min(30, Math.max(8, rows));
+
+        return { rows, cols };
+      }
+
+      function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+        return a;
+      }
+
+      function attemptPlaceAllWords(wordsList, rows, cols, vectors) {
+        // Ordenar de mayor a menor longitud con ligera aleatoriedad entre longitudes similares
+        const ordered = wordsList
+          .slice()
+          .sort((a, b) => (b.gridWord.length - a.gridWord.length) || (Math.random() - 0.5));
+
+        const grid = Array.from({ length: rows }, () => Array(cols).fill(''));
+        const placements = new Array(ordered.length);
+        let steps = 0;
+        const MAX_STEPS = 12000;
+        let deepestReached = 0;
+
+        function getCandidatesForWord(wordObj) {
+          const w = wordObj.gridWord;
+          const len = w.length;
+          const candidates = [];
+
+          for (const vec of vectors) {
+            const minR = vec.dr < 0 ? len - 1 : 0;
+            const maxR = vec.dr > 0 ? rows - len : rows - 1;
+            const minC = vec.dc < 0 ? len - 1 : 0;
+            const maxC = vec.dc > 0 ? cols - len : cols - 1;
+            if (maxR < minR || maxC < minC) continue;
+
+            for (let r = minR; r <= maxR; r++) {
+              for (let c = minC; c <= maxC; c++) {
+                let intersections = 0;
+                let conflict = false;
+                for (let k = 0; k < len; k++) {
+                  const rr = r + vec.dr * k;
+                  const cc = c + vec.dc * k;
+                  const existing = grid[rr][cc];
+                  if (existing !== '') {
+                    if (existing !== w[k]) {
+                      conflict = true;
+                      break;
+                    }
+                    intersections++;
+                  }
+                }
+                if (!conflict) {
+                  // Puntuación: favorecer cruces, diversidad direccional y distribución equilibrada
+                  const centerBias = 1 - (Math.abs(r + (vec.dr * len) / 2 - rows / 2) / rows);
+                  const score = intersections * 12 + centerBias * 1.5 + Math.random() * 4.5;
+                  candidates.push({ r, c, vec, intersections, score });
+                }
+              }
+            }
+          }
+
+          candidates.sort((a, b) => b.score - a.score);
+          // Limitar ramificación para mantener respuesta instantánea (< 25ms)
+          return candidates.slice(0, 64);
+        }
+
+        function backtrack(idx) {
+          if (idx > deepestReached) deepestReached = idx;
+          if (idx === ordered.length) return true;
+          if (steps++ > MAX_STEPS) return false;
+
+          const wordObj = ordered[idx];
+          const candidates = getCandidatesForWord(wordObj);
+          if (candidates.length === 0) return false;
+
+          const w = wordObj.gridWord;
+          const len = w.length;
+
+          for (let i = 0; i < candidates.length; i++) {
+            const cand = candidates[i];
+            const written = [];
+
+            for (let k = 0; k < len; k++) {
+              const rr = cand.r + cand.vec.dr * k;
+              const cc = cand.c + cand.vec.dc * k;
+              if (grid[rr][cc] === '') {
+                grid[rr][cc] = w[k];
+                written.push([rr, cc]);
+              }
+            }
+
+            placements[idx] = {
+              display: wordObj.display,
+              gridWord: w,
+              row: cand.r,
+              col: cand.c,
+              dr: cand.vec.dr,
+              dc: cand.vec.dc,
+              endRow: cand.r + cand.vec.dr * (len - 1),
+              endCol: cand.c + cand.vec.dc * (len - 1),
+              directionLabel: cand.vec.label,
+              cells: Array.from({ length: len }, (_, k) => ({
+                r: cand.r + cand.vec.dr * k,
+                c: cand.c + cand.vec.dc * k
+              }))
+            };
+
+            if (backtrack(idx + 1)) return true;
+
+            // Retroceso: deshacer únicamente las celdas escritas en este paso
+            for (let j = 0; j < written.length; j++) {
+              const [wr, wc] = written[j];
+              grid[wr][wc] = '';
+            }
+            placements[idx] = null;
+
+            if (steps > MAX_STEPS) return false;
+          }
+          return false;
+        }
+
+        const success = backtrack(0);
+        return { success, grid, placements, ordered, deepestReached };
+      }
+
+      function generatePuzzleObject(seedWords, genCfg, orientation) {
+        const vectors = getActiveDirectionVectors(genCfg.dirs);
+        if (vectors.length === 0) {
+          return {
+            ok: false,
+            error: 'No hay direcciones activas. Activa al menos una dirección (Horizontal, Vertical o Diagonal).',
+            unplacedWords: seedWords.map(w => w.display),
+            rows: 12,
+            cols: 12
+          };
+        }
+
+        if (seedWords.length === 0) {
+          return {
+            ok: false,
+            error: 'Agrega al menos una palabra válida para generar la sopa de letras.',
+            unplacedWords: [],
+            rows: 12,
+            cols: 12
+          };
+        }
+
+        let dims = genCfg.autoSize
+          ? computeAutoGridDimensions(seedWords, genCfg.difficulty, orientation)
+          : {
+              rows: Math.max(6, Math.min(32, parseInt(genCfg.manualRows, 10) || 15)),
+              cols: Math.max(6, Math.min(32, parseInt(genCfg.manualCols, 10) || 15))
+            };
+
+        const maxWordLen = seedWords.reduce((m, w) => Math.max(m, w.gridWord.length), 0);
+        const canFitLongest = vectors.some(v => {
+          const needR = v.dr !== 0 ? maxWordLen : 1;
+          const needC = v.dc !== 0 ? maxWordLen : 1;
+          return needR <= dims.rows && needC <= dims.cols;
+        });
+
+        if (!canFitLongest && !genCfg.autoSize) {
+          const tooLongList = seedWords.filter(w => {
+            return !vectors.some(v => (v.dr !== 0 ? w.gridWord.length : 1) <= dims.rows && (v.dc !== 0 ? w.gridWord.length : 1) <= dims.cols);
+          }).map(w => w.display);
+
+          return {
+            ok: false,
+            error: `La cuadrícula manual (${dims.rows}×${dims.cols}) es demasiado pequeña para ubicar palabras de ${maxWordLen} letras.`,
+            unplacedWords: tooLongList,
+            rows: dims.rows,
+            cols: dims.cols
+          };
+        }
+
+        // Si es autoSize, puede expandir gradualmente si un conjunto denso de 40 palabras necesita más espacio
+        const maxExpandAttempts = genCfg.autoSize ? 4 : 1;
+        let finalAttempt = null;
+
+        for (let exp = 0; exp < maxExpandAttempts; exp++) {
+          const tryRows = Math.min(32, dims.rows + exp * 2);
+          const tryCols = Math.min(32, dims.cols + exp * 2);
+
+          // Múltiples reinicios aleatorios para encontrar ubicación completa
+          for (let restart = 0; restart < 8; restart++) {
+            const res = attemptPlaceAllWords(seedWords, tryRows, tryCols, vectors);
+            if (res.success) {
+              dims = { rows: tryRows, cols: tryCols };
+              finalAttempt = res;
+              break;
+            }
+            if (!finalAttempt || res.deepestReached > finalAttempt.deepestReached) {
+              finalAttempt = res;
+            }
+          }
+          if (finalAttempt && finalAttempt.success) break;
+        }
+
+        if (!finalAttempt || !finalAttempt.success) {
+          const placedCount = finalAttempt ? finalAttempt.deepestReached : 0;
+          const unplaced = finalAttempt
+            ? finalAttempt.ordered.slice(placedCount).map(w => w.display)
+            : seedWords.map(w => w.display);
+
+          return {
+            ok: false,
+            error: `No fue posible ubicar todas las palabras en la cuadrícula ${dims.rows}×${dims.cols}. Quedaron ${unplaced.length} palabra(s) sin ubicar.`,
+            unplacedWords: unplaced,
+            rows: dims.rows,
+            cols: dims.cols
+          };
+        }
+
+        // Contar ocupación real antes de rellenar vacíos
+        const grid = finalAttempt.grid;
+        let occupiedCells = 0;
+        for (let r = 0; r < dims.rows; r++) {
+          for (let c = 0; c < dims.cols; c++) {
+            if (grid[r][c] !== '') {
+              occupiedCells++;
+            } else {
+              grid[r][c] = SPANISH_FILLER[Math.floor(Math.random() * SPANISH_FILLER.length)];
+            }
+          }
+        }
+
+        // Asignar colores pastel distintos a cada palabra colocada y verificar integridad exacta
+        const placed = finalAttempt.placements.map((p, idx) => ({
+          ...p,
+          colorFill: SOLUTION_COLORS[idx % SOLUTION_COLORS.length],
+          colorStroke: SOLUTION_STROKES[idx % SOLUTION_STROKES.length]
+        }));
+
+        // Verificación obligatoria letra por letra contra la matriz final
+        for (const p of placed) {
+          let reconstructed = '';
+          for (const cell of p.cells) {
+            reconstructed += grid[cell.r][cell.c];
+          }
+          if (reconstructed !== p.gridWord) {
+            return {
+              ok: false,
+              error: `Error de verificación interna en la palabra "${p.display}". Intenta regenerar.`,
+              unplacedWords: [p.display],
+              rows: dims.rows,
+              cols: dims.cols
+            };
+          }
+        }
+
+        const totalCells = dims.rows * dims.cols;
+        const occupancyPct = Math.round((occupiedCells / totalCells) * 100);
+
+        return {
+          ok: true,
+          rows: dims.rows,
+          cols: dims.cols,
+          grid,
+          placed,
+          occupancyPct,
+          verifiedAt: Date.now()
+        };
+      }
+
+      /* =========================================================================
+       * 6. MOTOR DE RENDERIZADO CANVAS ALTA PRECISIÓN (HOJA CARTA 8.5 × 11 IN)
+       * ========================================================================= */
+      function getPageLogicalSize(orientation) {
+        // 96 DPI exacto para hoja carta: 8.5*96 = 816, 11*96 = 1056
+        return orientation === 'landscape'
+          ? { W: 1056, H: 816 }
+          : { W: 816, H: 1056 };
+      }
+
+      function loadImageCached(dataUrl, onReady) {
+        if (!dataUrl) return null;
+        const existing = loadedImagesMap.get(dataUrl);
+        if (existing) {
+          return existing.complete && existing.naturalWidth > 0 ? existing : null;
+        }
+        const img = new Image();
+        img.onload = () => {
+          if (typeof onReady === 'function') onReady();
+        };
+        img.src = dataUrl;
+        loadedImagesMap.set(dataUrl, img);
+        return img.complete && img.naturalWidth > 0 ? img : null;
+      }
+
+      function wrapCanvasText(ctx, text, maxWidth) {
+        if (!text) return [];
+        const paragraphs = String(text).split(/\n/);
+        const lines = [];
+        for (const para of paragraphs) {
+          const words = para.split(/\s+/).filter(Boolean);
+          if (words.length === 0) continue;
+          let line = words[0];
+          for (let i = 1; i < words.length; i++) {
+            const test = line + ' ' + words[i];
+            if (ctx.measureText(test).width <= maxWidth) {
+              line = test;
+            } else {
+              lines.push(line);
+              line = words[i];
+            }
+          }
+          lines.push(line);
+        }
+        return lines;
+      }
+
+      function drawRoundedRectPath(ctx, x, y, w, h, r) {
+        const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + w - radius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+        ctx.lineTo(x + w, y + h - radius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        ctx.lineTo(x + radius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      function getOrderedWordBank(placedWords, orderMode) {
+        const list = placedWords.slice();
+        if (orderMode === 'alpha') {
+          list.sort((a, b) => a.display.localeCompare(b.display, 'es'));
+        } else if (orderMode === 'random') {
+          // Orden determinista pseudo-aleatorio por nombre si no se ha barajado aparte
+          list.sort((a, b) => {
+            const ha = a.gridWord.split('').reduce((s, c, i) => s + c.charCodeAt(0) * (i + 3), 0) % 97;
+            const hb = b.gridWord.split('').reduce((s, c, i) => s + c.charCodeAt(0) * (i + 3), 0) % 97;
+            return ha - hb;
+          });
+        }
+        return list;
+      }
+
+      function renderSheetToCanvas(canvas, pageType, appState, scaleFactor, onImageLoadRedraw) {
+        const isSolution = pageType === 'solution';
+        const { W, H } = getPageLogicalSize(appState.page.orientation);
+        canvas.width = Math.round(W * scaleFactor);
+        canvas.height = Math.round(H * scaleFactor);
+
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.scale(scaleFactor, scaleFactor);
+
+        // Fondo blanco hoja carta
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, W, H);
+
+        // Márgenes (1 mm ≈ 3.78 px a 96 DPI)
+        const margin = Math.round((appState.page.marginMm || 12) * 3.78);
+        const contentX = margin;
+        const contentW = W - margin * 2;
+        let curY = margin;
+
+        // -----------------------------------------------------------------------
+        // A. ENCABEZADO CON IMAGEN DE FONDO, CAPA DE COLOR, LOGOTIPO Y TÍTULO
+        // -----------------------------------------------------------------------
+        const hs = appState.headerStyle;
+        const hdrH = hs.height || 96;
+        const hdrX = hs.widthMode === 'full' ? 0 : contentX;
+        const hdrW = hs.widthMode === 'full' ? W : contentW;
+        const hdrY = hs.widthMode === 'full' ? 0 : curY;
+
+        ctx.save();
+        drawRoundedRectPath(ctx, hdrX, hdrY, hdrW, hdrH, hs.widthMode === 'full' ? 0 : 10);
+        ctx.clip();
+
+        ctx.fillStyle = hs.bgColor || '#ede9fe';
+        ctx.fillRect(hdrX, hdrY, hdrW, hdrH);
+
+        // Imagen de fondo (personalizada o temática)
+        const activeImgUrl = hs.imageDataUrl || getThematicHeaderDataUrl(hs.themePreset);
+        if (activeImgUrl) {
+          const bgImg = loadImageCached(activeImgUrl, onImageLoadRedraw);
+          if (bgImg) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, (hs.imageOpacity ?? 85) / 100));
+            const iw = bgImg.naturalWidth;
+            const ih = bgImg.naturalHeight;
+            let drawW, drawH;
+            if (hs.imgFit === 'contain') {
+              const s = Math.min(hdrW / iw, hdrH / ih);
+              drawW = iw * s;
+              drawH = ih * s;
+            } else {
+              const s = Math.max(hdrW / iw, hdrH / ih);
+              drawW = iw * s;
+              drawH = ih * s;
+            }
+            const px = (hs.imgPosX ?? 50) / 100;
+            const py = (hs.imgPosY ?? 50) / 100;
+            const dx = hdrX + (hdrW - drawW) * px;
+            const dy = hdrY + (hdrH - drawH) * py;
+            ctx.drawImage(bgImg, dx, dy, drawW, drawH);
+            ctx.restore();
+          }
+        }
+
+        // Capa de color transparente
+        if ((hs.overlayOpacity ?? 0) > 0) {
+          ctx.save();
+          ctx.globalAlpha = (hs.overlayOpacity ?? 20) / 100;
+          ctx.fillStyle = hs.overlayColor || '#ffffff';
+          ctx.fillRect(hdrX, hdrY, hdrW, hdrH);
+          ctx.restore();
+        }
+
+        // Logotipo institucional independiente (si existe)
+        let logoReservedLeft = 0;
+        let logoReservedRight = 0;
+        if (hs.logoDataUrl) {
+          const logoImg = loadImageCached(hs.logoDataUrl, onImageLoadRedraw);
+          if (logoImg) {
+            const maxLogoH = hdrH - 20;
+            const maxLogoW = 110;
+            const ls = Math.min(maxLogoW / logoImg.naturalWidth, maxLogoH / logoImg.naturalHeight);
+            const lw = logoImg.naturalWidth * ls;
+            const lh = logoImg.naturalHeight * ls;
+            const ly = hdrY + (hdrH - lh) / 2;
+            const lx = hs.logoPos === 'right'
+              ? hdrX + hdrW - lw - 16
+              : hdrX + 16;
+            ctx.drawImage(logoImg, lx, ly, lw, lh);
+            if (hs.logoPos === 'right') logoReservedRight = lw + 24;
+            else logoReservedLeft = lw + 24;
+          }
+        }
+
+        // Texto de Título y Subtítulo en encabezado
+        const padLeft = (hs.widthMode === 'full' ? margin : 18) + logoReservedLeft;
+        const padRight = (hs.widthMode === 'full' ? margin : 18) + logoReservedRight;
+        const titleBoxW = hdrW - padLeft - padRight;
+        const titleSize = hs.titleSize || 22;
+        const subtitleText = appState.meta.subtitle ? appState.meta.subtitle.trim() : '';
+        const titleText = (appState.meta.title || 'Sopa de Letras Educativa').trim();
+
+        ctx.fillStyle = hs.titleColor || '#1e2430';
+        ctx.textAlign = hs.titleAlign || 'center';
+        ctx.textBaseline = 'top';
+
+        const anchorX = hs.titleAlign === 'left'
+          ? hdrX + padLeft
+          : hs.titleAlign === 'right'
+            ? hdrX + hdrW - padRight
+            : hdrX + padLeft + titleBoxW / 2;
+
+        ctx.font = `700 ${titleSize}px ${hs.titleFont || "'Plus Jakarta Sans', sans-serif"}`;
+        const titleLines = wrapCanvasText(ctx, titleText, titleBoxW).slice(0, 2);
+        const titleLineH = titleSize * 1.18;
+        const subSize = Math.max(11, Math.round(titleSize * 0.56));
+        const totalTextH = titleLines.length * titleLineH + (subtitleText ? subSize * 1.35 + 4 : 0);
+
+        let textStartY = hdrY + (hdrH - totalTextH) / 2;
+        if (hs.titleValign === 'top') textStartY = hdrY + 12;
+        else if (hs.titleValign === 'bottom') textStartY = hdrY + hdrH - totalTextH - 12;
+
+        titleLines.forEach((line, idx) => {
+          ctx.fillText(line, anchorX, textStartY + idx * titleLineH);
+        });
+
+        if (subtitleText) {
+          ctx.font = `500 ${subSize}px ${hs.titleFont || "'Plus Jakarta Sans', sans-serif"}`;
+          ctx.globalAlpha = 0.88;
+          ctx.fillText(subtitleText, anchorX, textStartY + titleLines.length * titleLineH + 4, titleBoxW);
+          ctx.globalAlpha = 1;
+        }
+
+        // Etiqueta clara SOLUCIONARIO en página 2
+        if (isSolution) {
+          const badgeW = 128;
+          const badgeH = 24;
+          const bx = hs.logoPos === 'right' ? hdrX + 14 : hdrX + hdrW - badgeW - 14;
+          const by = hdrY + 10;
+          ctx.fillStyle = '#6d28d9';
+          drawRoundedRectPath(ctx, bx, by, badgeW, badgeH, 6);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = "700 11px 'Plus Jakarta Sans', sans-serif";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('SOLUCIONARIO', bx + badgeW / 2, by + badgeH / 2);
+        }
+
+        ctx.restore();
+        curY = hdrY + hdrH + 10;
+
+        // -----------------------------------------------------------------------
+        // B. METADATOS INSTITUCIONALES Y DEL ESTUDIANTE
+        // -----------------------------------------------------------------------
+        const m = appState.meta;
+        const metaRow1 = [];
+        if (m.institution) metaRow1.push(`Institución: ${m.institution}`);
+        if (m.subject) metaRow1.push(`Área: ${m.subject}`);
+        if (m.grade) metaRow1.push(`Grado: ${m.grade}`);
+        if (m.creator) metaRow1.push(`Docente: ${m.creator}`);
+
+        if (metaRow1.length > 0) {
+          ctx.font = "500 10.5px 'DM Sans', sans-serif";
+          ctx.fillStyle = '#475569';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          const metaLine = metaRow1.join('   ·   ');
+          const mLines = wrapCanvasText(ctx, metaLine, contentW);
+          mLines.forEach((ln, i) => ctx.fillText(ln, contentX, curY + i * 14));
+          curY += mLines.length * 14 + 4;
+        }
+
+        const showLines = m.showStudentLines;
+        const hasStudentInfo = m.student || m.group || m.date || showLines;
+        if (hasStudentInfo) {
+          const stuText = m.student ? `Estudiante: ${m.student}` : (showLines ? 'Estudiante: ___________________________' : '');
+          const grpText = m.group ? `Grupo: ${m.group}` : (showLines ? 'Grupo: __________' : '');
+          const datText = m.date ? `Fecha: ${m.date}` : (showLines ? 'Fecha: ____________' : '');
+          const parts = [stuText, grpText, datText].filter(Boolean);
+          if (parts.length > 0) {
+            ctx.fillStyle = '#f8fafc';
+            drawRoundedRectPath(ctx, contentX, curY, contentW, 24, 5);
+            ctx.fill();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.font = "500 10.5px 'DM Sans', sans-serif";
+            ctx.fillStyle = '#1e293b';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            const segW = contentW / parts.length;
+            parts.forEach((pt, idx) => {
+              ctx.fillText(pt, contentX + 10 + idx * segW, curY + 12, segW - 14);
+            });
+            curY += 30;
+          }
+        }
+
+        // Descripción e instrucciones (en actividad y breve resumen en solucionario)
+        if (m.description && !isSolution) {
+          ctx.font = "400 10.5px 'DM Sans', sans-serif";
+          ctx.fillStyle = '#334155';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          const dLines = wrapCanvasText(ctx, m.description, contentW).slice(0, 2);
+          dLines.forEach((ln, i) => ctx.fillText(ln, contentX, curY + i * 14));
+          curY += dLines.length * 14 + 4;
+        }
+
+        if (m.instructions && !isSolution) {
+          ctx.font = "italic 10px 'DM Sans', sans-serif";
+          ctx.fillStyle = '#475569';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          const iLines = wrapCanvasText(ctx, 'Instrucciones: ' + m.instructions, contentW).slice(0, 3);
+          iLines.forEach((ln, i) => ctx.fillText(ln, contentX, curY + i * 13));
+          curY += iLines.length * 13 + 8;
+        } else {
+          curY += 4;
+        }
+
+        // -----------------------------------------------------------------------
+        // C. CÁLCULO EXACTO DE PRESUPUESTO VERTICAL (CUADRÍCULA + LISTADO + PIE)
+        // -----------------------------------------------------------------------
+        const footerH = 22;
+        const bottomLimitY = H - margin - footerH;
+
+        const puzzle = appState.activeAB === 'B' && appState.abPuzzles
+          ? appState.abPuzzles.B
+          : appState.puzzle;
+
+        if (!puzzle || !puzzle.ok) {
+          // Estado informativo cuando aún no hay cuadrícula válida
+          ctx.fillStyle = '#fef2f2';
+          drawRoundedRectPath(ctx, contentX, curY + 20, contentW, 130, 10);
+          ctx.fill();
+          ctx.strokeStyle = '#fca5a5';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#991b1b';
+          ctx.font = "700 15px 'Plus Jakarta Sans', sans-serif";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('No se pudo generar la cuadrícula completa', contentX + contentW / 2, curY + 46);
+
+          ctx.font = "400 12px 'DM Sans', sans-serif";
+          const errLines = wrapCanvasText(ctx, (puzzle && puzzle.error) || 'Revisa la lista de palabras o las dimensiones.', contentW - 60);
+          errLines.slice(0, 3).forEach((ln, i) => {
+            ctx.fillText(ln, contentX + contentW / 2, curY + 76 + i * 17);
+          });
+          ctx.restore();
+          return;
+        }
+
+        // Preparar listado de palabras debajo de la cuadrícula
+        const wStyle = appState.wordListStyle;
+        const orderedWords = getOrderedWordBank(puzzle.placed, wStyle.order);
+        const listCols = Math.max(2, Math.min(4, parseInt(wStyle.cols, 10) || 3));
+        const listRows = Math.ceil(orderedWords.length / listCols);
+
+        // Ajuste automático del tamaño de fila del listado para evitar que jamás se corte
+        let listFontSize = wStyle.fontSize || 11;
+        let listRowGap = wStyle.spacing ?? 6;
+        let listHeaderH = 22;
+        let listPadTop = 10;
+        let listPadBot = 10;
+        let rowStep = listFontSize + listRowGap;
+        let listBoxH = listHeaderH + listRows * rowStep + listPadTop + listPadBot;
+
+        const totalAvailableForGridAndList = bottomLimitY - curY;
+        const minGridDesiredH = Math.max(220, totalAvailableForGridAndList * 0.56);
+
+        // Si el listado de 40 palabras ocupa demasiado, compactamos suavemente su interlineado/fuente
+        if (totalAvailableForGridAndList - listBoxH < minGridDesiredH) {
+          const maxListAllowed = Math.max(120, totalAvailableForGridAndList - minGridDesiredH - 12);
+          const availRowsH = Math.max(60, maxListAllowed - listHeaderH - listPadTop - listPadBot);
+          rowStep = Math.max(11.5, Math.min(rowStep, availRowsH / Math.max(1, listRows)));
+          listFontSize = Math.min(listFontSize, Math.max(8.5, rowStep - 2.5));
+          listBoxH = listHeaderH + listRows * rowStep + listPadTop + listPadBot;
+        }
+
+        const gapBetweenGridAndList = 14;
+        const maxGridH = Math.max(140, totalAvailableForGridAndList - listBoxH - gapBetweenGridAndList);
+        const maxGridW = contentW;
+
+        // -----------------------------------------------------------------------
+        // D. DIBUJO DE LA CUADRÍCULA Y RESALTADO EXACTO DEL SOLUCIONARIO
+        // -----------------------------------------------------------------------
+        const gs = appState.gridStyle;
+        const nRows = puzzle.rows;
+        const nCols = puzzle.cols;
+        const cellGap = gs.cellGap || 0;
+        const scalePct = (gs.cellScale || 100) / 100;
+
+        const rawCellW = (maxGridW - (nCols - 1) * cellGap) / nCols;
+        const rawCellH = (maxGridH - (nRows - 1) * cellGap) / nRows;
+        const cellSize = Math.max(11, Math.floor(Math.min(rawCellW, rawCellH) * scalePct * 10) / 10);
+
+        const gridTotalW = nCols * cellSize + (nCols - 1) * cellGap;
+        const gridTotalH = nRows * cellSize + (nRows - 1) * cellGap;
+        const gridX = contentX + (contentW - gridTotalW) / 2;
+        const gridY = curY + Math.max(0, (maxGridH - gridTotalH) / 2);
+
+        // Fondo de celdas y bordes
+        for (let r = 0; r < nRows; r++) {
+          for (let c = 0; c < nCols; c++) {
+            const cx = gridX + c * (cellSize + cellGap);
+            const cy = gridY + r * (cellSize + cellGap);
+
+            ctx.fillStyle = gs.cellBg || '#ffffff';
+            drawRoundedRectPath(ctx, cx, cy, cellSize, cellSize, gs.cellRadius || 0);
+            ctx.fill();
+
+            if (gs.showBorders && (gs.borderWidth || 0) > 0) {
+              ctx.strokeStyle = gs.borderColor || '#cbd5e1';
+              ctx.lineWidth = gs.borderWidth;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Borde exterior elegante si la cuadrícula está pegada (cellGap === 0 y showBorders)
+        if (gs.showBorders && cellGap === 0 && (gs.borderWidth || 0) > 0) {
+          ctx.strokeStyle = gs.borderColor || '#cbd5e1';
+          ctx.lineWidth = Math.max(1.2, gs.borderWidth);
+          drawRoundedRectPath(ctx, gridX, gridY, gridTotalW, gridTotalH, gs.cellRadius || 0);
+          ctx.stroke();
+        }
+
+        // Resaltado del SOLUCIONARIO (utilizando las coordenadas exactas registradas)
+        if (isSolution) {
+          const solType = appState.solutionStyle.type || 'capsule';
+          const multi = appState.solutionStyle.multicolor;
+
+          puzzle.placed.forEach((p, idx) => {
+            const fillCol = multi ? p.colorFill : 'rgba(196, 181, 253, 0.55)';
+            const strokeCol = multi ? p.colorStroke : '#6d28d9';
+
+            if (solType === 'cells') {
+              p.cells.forEach(cell => {
+                const cx = gridX + cell.c * (cellSize + cellGap);
+                const cy = gridY + cell.r * (cellSize + cellGap);
+                ctx.save();
+                ctx.fillStyle = fillCol;
+                drawRoundedRectPath(ctx, cx + 1, cy + 1, cellSize - 2, cellSize - 2, Math.max(3, gs.cellRadius || 4));
+                ctx.fill();
+                ctx.restore();
+              });
+            } else {
+              const x1 = gridX + p.col * (cellSize + cellGap) + cellSize / 2;
+              const y1 = gridY + p.row * (cellSize + cellGap) + cellSize / 2;
+              const x2 = gridX + p.endCol * (cellSize + cellGap) + cellSize / 2;
+              const y2 = gridY + p.endRow * (cellSize + cellGap) + cellSize / 2;
+              const angle = Math.atan2(y2 - y1, x2 - x1);
+              const dist = Math.hypot(x2 - x1, y2 - y1);
+
+              ctx.save();
+              ctx.translate(x1, y1);
+              ctx.rotate(angle);
+
+              if (solType === 'line') {
+                ctx.strokeStyle = fillCol;
+                ctx.lineCap = 'round';
+                ctx.lineWidth = cellSize * 0.52;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(dist, 0);
+                ctx.stroke();
+              } else {
+                const pillH = cellSize * 0.78;
+                const pillW = dist + cellSize * 0.78;
+                const px = -cellSize * 0.39;
+                const py = -pillH / 2;
+                drawRoundedRectPath(ctx, px, py, pillW, pillH, pillH / 2);
+
+                if (solType === 'capsule') {
+                  ctx.fillStyle = fillCol;
+                  ctx.fill();
+                } else {
+                  ctx.fillStyle = fillCol;
+                  ctx.globalAlpha = 0.25;
+                  ctx.fill();
+                  ctx.globalAlpha = 1;
+                  ctx.strokeStyle = strokeCol;
+                  ctx.lineWidth = Math.max(1.5, cellSize * 0.08);
+                  ctx.stroke();
+                }
+              }
+              ctx.restore();
+            }
+          });
+        }
+
+        // Dibujo de letras encima de celdas y resaltados
+        const fontScale = (gs.fontScale || 100) / 100;
+        const letterSize = Math.max(8, Math.round(cellSize * 0.56 * fontScale));
+        const fontWeight = gs.gridBold ? '700' : '500';
+        ctx.font = `${fontWeight} ${letterSize}px ${gs.gridFont || "'Plus Jakarta Sans', sans-serif"}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Mapa rápido de celdas solucionario para dar aún mayor legibilidad
+        const solCellSet = isSolution ? new Set() : null;
+        if (isSolution) {
+          puzzle.placed.forEach(p => p.cells.forEach(c => solCellSet.add(`${c.r},${c.c}`)));
+        }
+
+        for (let r = 0; r < nRows; r++) {
+          for (let c = 0; c < nCols; c++) {
+            const cx = gridX + c * (cellSize + cellGap) + cellSize / 2;
+            const cy = gridY + r * (cellSize + cellGap) + cellSize / 2 + 0.5;
+            let ch = puzzle.grid[r][c];
+            if (gs.gridCase === 'lower') ch = ch.toLowerCase();
+
+            if (isSolution && solCellSet.has(`${r},${c}`)) {
+              ctx.fillStyle = '#0f172a';
+              ctx.font = `800 ${letterSize}px ${gs.gridFont || "'Plus Jakarta Sans', sans-serif"}`;
+            } else {
+              ctx.fillStyle = isSolution ? '#475569' : (gs.letterColor || '#1e2430');
+              ctx.font = `${fontWeight} ${letterSize}px ${gs.gridFont || "'Plus Jakarta Sans', sans-serif"}`;
+            }
+            ctx.fillText(ch, cx, cy);
+          }
+        }
+
+        // -----------------------------------------------------------------------
+        // E. LISTADO DE PALABRAS DEBAJO DE LA CUADRÍCULA (2, 3 O 4 COLUMNAS)
+        // -----------------------------------------------------------------------
+        const listY = gridY + gridTotalH + gapBetweenGridAndList;
+        const actualListBoxH = Math.min(listBoxH, bottomLimitY - listY);
+
+        ctx.fillStyle = '#fbfaf8';
+        drawRoundedRectPath(ctx, contentX, listY, contentW, actualListBoxH, 8);
+        ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#334155';
+        ctx.font = "700 11px 'Plus Jakarta Sans', sans-serif";
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`PALABRAS A ENCONTRAR (${orderedWords.length})`, contentX + 12, listY + 8);
+
+        const listStartY = listY + listHeaderH + 4;
+        const colW = (contentW - 24) / listCols;
+        ctx.font = `600 ${listFontSize}px 'DM Sans', sans-serif`;
+        ctx.textBaseline = 'top';
+
+        orderedWords.forEach((item, i) => {
+          const colIdx = Math.floor(i / listRows);
+          const rowIdx = i % listRows;
+          const lx = contentX + 12 + colIdx * colW;
+          const ly = listStartY + rowIdx * rowStep;
+
+          if (ly + listFontSize > listY + actualListBoxH - 4) return;
+
+          let label = item.display;
+          if (wStyle.marker === 'number') label = `${i + 1}. ${label}`;
+          else if (wStyle.marker === 'bullet') label = `• ${label}`;
+
+          if (isSolution && appState.solutionStyle.multicolor) {
+            ctx.fillStyle = item.colorStroke;
+            ctx.beginPath();
+            ctx.arc(lx + 4, ly + listFontSize * 0.55, 3.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1e2430';
+            ctx.fillText(label, lx + 12, ly, colW - 18);
+          } else {
+            ctx.fillStyle = '#1e2430';
+            ctx.fillText(label, lx, ly, colW - 10);
+          }
+        });
+
+        // -----------------------------------------------------------------------
+        // F. PIE DE PÁGINA
+        // -----------------------------------------------------------------------
+        const footerY = H - margin - 10;
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(contentX, footerY - 10);
+        ctx.lineTo(contentX + contentW, footerY - 10);
+        ctx.stroke();
+
+        ctx.font = "400 9.5px 'DM Sans', sans-serif";
+        ctx.fillStyle = '#64748b';
+        ctx.textBaseline = 'middle';
+
+        const leftFooter = (appState.meta.footerMessage || '').trim();
+        const creditFooter = appState.meta.includeDevCredit
+          ? 'Desarrollado por: John Alexander Echeverry Ocampo · Instructor del SENA'
+          : '';
+        const pageTag = isSolution ? 'Página 2 · Solucionario' : 'Página 1 · Actividad';
+
+        ctx.textAlign = 'left';
+        ctx.fillText(leftFooter || creditFooter, contentX, footerY, contentW * 0.65);
+
+        ctx.textAlign = 'right';
+        const rightText = leftFooter && creditFooter ? `${creditFooter}   |   ${pageTag}` : pageTag;
+        ctx.fillText(rightText, contentX + contentW, footerY, contentW * 0.55);
+
+        ctx.restore();
+      }
+
+      /* =========================================================================
+       * 7. EXPORTACIÓN A PDF, PNG E IMPRESIÓN DIRECTA
+       * ========================================================================= */
+      function buildSafeFilename(ext) {
+        const raw = (state.meta.title || 'sopa-de-letras').toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const ver = state.abPuzzles ? `-ver-${state.activeAB.toLowerCase()}` : '';
+        return `${raw || 'sopa-de-letras'}${ver}.${ext}`;
+      }
+
+      function renderExportDataUrl(pageType) {
+        const off = document.createElement('canvas');
+        // 300 DPI exacto respecto a 96 DPI (3.125x => 2550×3300 px)
+        renderSheetToCanvas(off, pageType, state, 3.125, null);
+        return off.toDataURL('image/png', 1.0);
+      }
+
+      function exportPDF(mode) {
+        const puzzle = state.activeAB === 'B' && state.abPuzzles ? state.abPuzzles.B : state.puzzle;
+        if (!puzzle || !puzzle.ok) {
+          showToast('Genera primero una sopa de letras válida sin palabras pendientes.', 'warn');
+          return;
+        }
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+          showToast('La librería jsPDF no está disponible sin conexión. Usa "Imprimir directamente" para guardar como PDF.', 'warn');
+          return;
+        }
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const orientation = state.page.orientation === 'landscape' ? 'landscape' : 'portrait';
+          const doc = new jsPDF({
+            orientation,
+            unit: 'in',
+            format: 'letter',
+            compress: true
+          });
+
+          const pageW = orientation === 'landscape' ? 11 : 8.5;
+          const pageH = orientation === 'landscape' ? 8.5 : 11;
+
+          if (mode === 'both' || mode === 'activity') {
+            const imgAct = renderExportDataUrl('activity');
+            doc.addImage(imgAct, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
+          }
+
+          if (mode === 'both') {
+            doc.addPage('letter', orientation);
+          }
+
+          if (mode === 'both' || mode === 'solution') {
+            const imgSol = renderExportDataUrl('solution');
+            doc.addImage(imgSol, 'PNG', 0, 0, pageW, pageH, undefined, 'FAST');
+          }
+
+          const suffix = mode === 'activity' ? '-actividad' : mode === 'solution' ? '-solucionario' : '-completo';
+          const fname = buildSafeFilename('pdf').replace(/\.pdf$/, `${suffix}.pdf`);
+          doc.save(fname);
+          showToast(`PDF exportado: ${fname}`, 'success');
+        } catch (err) {
+          showToast('Ocurrió un error al generar el PDF: ' + err.message, 'error');
+        }
+      }
+
+      function exportPNG(pageType) {
+        const puzzle = state.activeAB === 'B' && state.abPuzzles ? state.abPuzzles.B : state.puzzle;
+        if (!puzzle || !puzzle.ok) {
+          showToast('Genera primero una sopa de letras válida.', 'warn');
+          return;
+        }
+        const url = renderExportDataUrl(pageType);
+        const a = document.createElement('a');
+        a.href = url;
+        const suffix = pageType === 'solution' ? '-solucionario' : '-actividad';
+        a.download = buildSafeFilename('png').replace(/\.png$/, `${suffix}.png`);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Imagen PNG descargada en alta resolución.', 'success');
+      }
+
+      function printDirectly() {
+        const puzzle = state.activeAB === 'B' && state.abPuzzles ? state.abPuzzles.B : state.puzzle;
+        if (!puzzle || !puzzle.ok) {
+          showToast('Genera primero una sopa de letras válida.', 'warn');
+          return;
+        }
+        const printArea = document.getElementById('print-area');
+        printArea.innerHTML = '';
+
+        const p1 = document.createElement('div');
+        p1.className = 'print-page';
+        const img1 = document.createElement('img');
+        img1.src = renderExportDataUrl('activity');
+        img1.alt = 'Página 1 Actividad';
+        p1.appendChild(img1);
+
+        const p2 = document.createElement('div');
+        p2.className = 'print-page';
+        const img2 = document.createElement('img');
+        img2.src = renderExportDataUrl('solution');
+        img2.alt = 'Página 2 Solucionario';
+        p2.appendChild(img2);
+
+        printArea.appendChild(p1);
+        printArea.appendChild(p2);
+
+        setTimeout(() => window.print(), 120);
+      }
+
+      /* =========================================================================
+       * 8. UTILIDADES UI: TOASTS, MODALES Y SINCRONIZACIÓN
+       * ========================================================================= */
+      function showToast(msg, type = 'info') {
+        const stack = document.getElementById('toast-stack');
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.textContent = msg;
+        stack.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 200ms ease';
+          setTimeout(() => el.remove(), 220);
+        }, 3400);
+      }
+
+      function openConfirmModal(title, message, onConfirm) {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-modal-title').textContent = title;
+        document.getElementById('confirm-modal-msg').textContent = message;
+        modal.classList.add('open');
+
+        const okBtn = document.getElementById('confirm-ok-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+        function cleanup() {
+          modal.classList.remove('open');
+          okBtn.removeEventListener('click', handleOk);
+          cancelBtn.removeEventListener('click', handleCancel);
+        }
+        function handleOk() { cleanup(); onConfirm(); }
+        function handleCancel() { cleanup(); }
+
+        okBtn.addEventListener('click', handleOk);
+        cancelBtn.addEventListener('click', handleCancel);
+      }
+
+      /* =========================================================================
+       * 9. CONTROLADOR PRINCIPAL DE INTERFAZ Y REACCIÓN EN TIEMPO REAL
+       * ========================================================================= */
+      let redrawScheduled = false;
+
+      function requestPreviewRedraw() {
+        if (redrawScheduled) return;
+        redrawScheduled = true;
+        requestAnimationFrame(() => {
+          redrawScheduled = false;
+          redrawAllPreviews();
+          saveDraftToStorage();
+        });
+      }
+
+      function redrawAllPreviews() {
+        const mainCanvas = document.getElementById('preview-canvas-main');
+        const pType = currentPreviewPage === 2 ? 'solution' : 'activity';
+        renderSheetToCanvas(mainCanvas, pType, state, 1.5, requestPreviewRedraw);
+
+        if (currentView === 'preview') {
+          renderSheetToCanvas(document.getElementById('preview-canvas-p1'), 'activity', state, 1.5, requestPreviewRedraw);
+          renderSheetToCanvas(document.getElementById('preview-canvas-p2'), 'solution', state, 1.5, requestPreviewRedraw);
+        }
+
+        // Actualizar barra de estadísticas
+        const activePuzzle = state.activeAB === 'B' && state.abPuzzles ? state.abPuzzles.B : state.puzzle;
+        const parsed = parseWordsInput(state.wordsConfig.rawText);
+        document.getElementById('stat-words').textContent = parsed.uniqueValid.length;
+        document.getElementById('stat-dims').textContent = activePuzzle ? `${activePuzzle.rows}×${activePuzzle.cols}` : '0×0';
+        document.getElementById('stat-occ').textContent = activePuzzle && activePuzzle.ok ? `${activePuzzle.occupancyPct}%` : '0%';
+
+        const diffNames = { facil: 'Fácil', intermedio: 'Intermedio', dificil: 'Difícil', personalizado: 'Manual' };
+        document.getElementById('stat-diff').textContent = diffNames[state.generation.difficulty] || 'Intermedio';
+
+        updateAlertStrips(parsed, activePuzzle);
+      }
+
+      function updateAlertStrips(parsed, activePuzzle) {
+        const strip = document.getElementById('preview-alert-strip');
+        const genBox = document.getElementById('generation-status-box');
+
+        if (activePuzzle && !activePuzzle.ok) {
+          const unplacedHtml = activePuzzle.unplacedWords && activePuzzle.unplacedWords.length > 0
+            ? `<div><strong>Sin ubicar:</strong> ${escapeHtml(activePuzzle.unplacedWords.join(', '))}</div>`
+            : '';
+
+          const html = `
+            <div class="notice-box notice-error" style="margin-top:12px;">
+              <div>${escapeHtml(activePuzzle.error)}</div>
+              ${unplacedHtml}
+              <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <button type="button" class="btn btn-primary btn-sm" data-action="expand-grid">Ampliar cuadrícula automáticamente</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-action="enable-all-dirs">Activar todas las direcciones</button>
+              </div>
+            </div>
+          `;
+          strip.innerHTML = html;
+          genBox.innerHTML = html;
+
+          [strip, genBox].forEach(container => {
+            const btnExpand = container.querySelector('[data-action="expand-grid"]');
+            const btnDirs = container.querySelector('[data-action="enable-all-dirs"]');
+            if (btnExpand) {
+              btnExpand.onclick = () => {
+                state.generation.autoSize = true;
+                state.generation.manualRows = Math.min(30, (activePuzzle.rows || 16) + 3);
+                state.generation.manualCols = Math.min(30, (activePuzzle.cols || 16) + 3);
+                syncStateToForm();
+                regenerateActivePuzzle(true);
+              };
+            }
+            if (btnDirs) {
+              btnDirs.onclick = () => {
+                applyDifficultyPreset('dificil');
+                syncStateToForm();
+                regenerateActivePuzzle(true);
+              };
+            }
+          });
+        } else {
+          strip.innerHTML = '';
+          genBox.innerHTML = activePuzzle && activePuzzle.ok
+            ? `<div class="notice-box notice-success" style="margin-top:10px;">Todas las ${activePuzzle.placed.length} palabras quedaron ubicadas y verificadas en ${activePuzzle.rows}×${activePuzzle.cols} (${activePuzzle.occupancyPct}% de ocupación).</div>`
+            : '';
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function regenerateActivePuzzle(notify = false) {
+        const parsed = parseWordsInput(state.wordsConfig.rawText);
+        state.abPuzzles = null;
+        state.activeAB = 'A';
+        document.getElementById('ab-version-switch').style.display = 'none';
+
+        state.puzzle = generatePuzzleObject(parsed.uniqueValid, state.generation, state.page.orientation);
+
+        if (state.puzzle.ok && state.generation.autoSize) {
+          state.generation.manualRows = state.puzzle.rows;
+          state.generation.manualCols = state.puzzle.cols;
+        }
+        updateWordValidationUI(parsed);
+        syncDimsUI();
+        requestPreviewRedraw();
+
+        if (notify) {
+          if (state.puzzle.ok) {
+            showToast(`Cuadrícula ${state.puzzle.rows}×${state.puzzle.cols} generada con ${state.puzzle.placed.length} palabras.`, 'success');
+          } else {
+            showToast('Atención: algunas palabras no cupieron con la configuración actual.', 'warn');
+          }
+        }
+      }
+
+      function generateABVersions() {
+        const parsed = parseWordsInput(state.wordsConfig.rawText);
+        const pA = generatePuzzleObject(parsed.uniqueValid, state.generation, state.page.orientation);
+        const pB = generatePuzzleObject(parsed.uniqueValid, state.generation, state.page.orientation);
+        if (!pA.ok || !pB.ok) {
+          state.puzzle = pA;
+          requestPreviewRedraw();
+          showToast('No fue posible generar ambas versiones con la configuración actual.', 'warn');
+          return;
+        }
+        state.puzzle = pA;
+        state.abPuzzles = { A: pA, B: pB };
+        state.activeAB = 'A';
+        const sw = document.getElementById('ab-version-switch');
+        sw.style.display = 'flex';
+        sw.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.ab === 'A'));
+        requestPreviewRedraw();
+        showToast('Versiones A y B generadas con éxito. Alterna arriba para revisar o descargar cada una.', 'success');
+      }
+
+      function updateWordValidationUI(parsed) {
+        const count = parsed.uniqueValid.length;
+        document.getElementById('word-count-badge').textContent = `${count} palabras válidas`;
+
+        const limit = SIZE_LIMITS[state.wordsConfig.sizeMode] || SIZE_LIMITS.pequena;
+        const banner = document.getElementById('word-validation-banner');
+
+        const messages = [];
+        let bannerClass = 'notice-success';
+
+        if (count < limit.min) {
+          bannerClass = 'notice-warn';
+          messages.push(`Modalidad ${limit.label} requiere entre ${limit.min} y ${limit.max} palabras (tienes ${count}).`);
+        } else if (count > limit.max) {
+          bannerClass = 'notice-warn';
+          messages.push(`Modalidad ${limit.label} admite hasta ${limit.max} palabras (tienes ${count}). Puedes cambiar a una modalidad mayor.`);
+        } else {
+          messages.push(`Modalidad ${limit.label} (${limit.min}–${limit.max} palabras): cantidad óptima.`);
+        }
+
+        if (parsed.duplicateCount > 0) {
+          bannerClass = 'notice-warn';
+          messages.push(`Se detectaron ${parsed.duplicateCount} palabra(s) repetida(s).`);
+        }
+        if (parsed.invalidCount > 0) {
+          bannerClass = 'notice-warn';
+          messages.push(`${parsed.invalidCount} entrada(s) tenían caracteres no válidos o menos de 2 letras.`);
+        }
+        if (parsed.tooLongCount > 0) {
+          bannerClass = 'notice-warn';
+          messages.push(`${parsed.tooLongCount} palabra(s) superan las 26 letras y son demasiado largas.`);
+        }
+
+        banner.className = `notice-box ${bannerClass}`;
+        banner.innerHTML = messages.map(m => `<div>${escapeHtml(m)}</div>`).join('');
+
+        // Render lista interactiva individual
+        const listEl = document.getElementById('word-chips-list');
+        if (parsed.items.length === 0) {
+          listEl.innerHTML = '<div style="padding:10px; font-size:13px; color:var(--text-muted); text-align:center;">No hay palabras ingresadas todavía.</div>';
+          return;
+        }
+
+        const unplacedSet = new Set((state.puzzle && !state.puzzle.ok && state.puzzle.unplacedWords) ? state.puzzle.unplacedWords : []);
+
+        listEl.innerHTML = parsed.items.map((item, idx) => {
+          const cls = ['word-item'];
+          let note = `${item.gridWord.length} letras`;
+          if (item.isDuplicate) { cls.push('is-duplicate'); note = 'Repetida'; }
+          else if (unplacedSet.has(item.display)) { cls.push('is-unplaced'); note = 'Sin ubicar'; }
+          else if (item.isTooLong) { cls.push('is-unplaced'); note = 'Muy larga'; }
+          else if (item.display !== item.gridWord) { note += ` · cuadrícula: ${item.gridWord}`; }
+
+          return `
+            <div class="${cls.join(' ')}">
+              <div class="word-item-main">
+                <span class="word-index">${idx + 1}.</span>
+                <span class="word-text">${escapeHtml(item.display)}</span>
+                <span class="word-meta">${escapeHtml(note)}</span>
+              </div>
+              <button type="button" class="word-remove" data-remove-idx="${idx}" title="Eliminar palabra" aria-label="Eliminar ${escapeHtml(item.display)}">×</button>
+            </div>
+          `;
+        }).join('');
+
+        listEl.querySelectorAll('[data-remove-idx]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.removeIdx, 10);
+            const next = parsed.items.filter((_, i) => i !== idx).map(it => it.display);
+            state.wordsConfig.rawText = next.join('\n');
+            document.getElementById('words-input').value = state.wordsConfig.rawText;
+            regenerateActivePuzzle();
+          });
+        });
+      }
+
+      function applyDifficultyPreset(diff) {
+        state.generation.difficulty = diff;
+        const d = state.generation.dirs;
+        if (diff === 'facil') {
+          d.hFwd = true; d.hRev = false;
+          d.vFwd = true; d.vRev = false;
+          d.dDown = false; d.dUp = false;
+          d.allowReversed = false;
+        } else if (diff === 'intermedio') {
+          d.hFwd = true; d.hRev = false;
+          d.vFwd = true; d.vRev = false;
+          d.dDown = true; d.dUp = true;
+          d.allowReversed = false;
+        } else if (diff === 'dificil') {
+          d.hFwd = true; d.hRev = true;
+          d.vFwd = true; d.vRev = true;
+          d.dDown = true; d.dUp = true;
+          d.allowReversed = true;
+        }
+      }
+
+      function generateAutomaticInstructions() {
+        const d = state.generation.dirs;
+        const dirText = [];
+        if (d.hFwd || d.hRev) dirText.push('horizontal');
+        if (d.vFwd || d.vRev) dirText.push('vertical');
+        if (d.dDown || d.dUp) dirText.push('diagonal');
+
+        const dirsFormatted = dirText.length > 1
+          ? dirText.slice(0, -1).join(', ') + ' y ' + dirText[dirText.length - 1]
+          : (dirText[0] || 'horizontal');
+
+        const revNote = d.allowReversed || d.hRev || d.vRev
+          ? ' Ten en cuenta que algunas palabras pueden leerse en sentido invertido.'
+          : '';
+
+        const count = parseWordsInput(state.wordsConfig.rawText).uniqueValid.length;
+        state.meta.instructions = `Busca y encierra las ${count} palabras del listado inferior dentro de la cuadrícula. Pueden encontrarse en dirección ${dirsFormatted}.${revNote} Tacha cada palabra en la lista a medida que la encuentres.`;
+        document.getElementById('cfg-instructions').value = state.meta.instructions;
+        requestPreviewRedraw();
+        showToast('Instrucciones generadas automáticamente.', 'success');
+      }
+
+      function syncDimsUI() {
+        const auto = state.generation.autoSize;
+        document.getElementById('grid-auto-size').checked = auto;
+        const box = document.getElementById('manual-dims-box');
+        box.style.opacity = auto ? '0.55' : '1';
+        document.getElementById('grid-rows').disabled = auto;
+        document.getElementById('grid-cols').disabled = auto;
+        document.getElementById('grid-rows').value = state.generation.manualRows;
+        document.getElementById('grid-cols').value = state.generation.manualCols;
+        document.getElementById('val-rows').textContent = state.generation.manualRows;
+        document.getElementById('val-cols').textContent = state.generation.manualCols;
+        document.getElementById('grid-dim-label').textContent = auto
+          ? `Auto (${state.puzzle ? state.puzzle.rows + '×' + state.puzzle.cols : '...'})`
+          : `Manual (${state.generation.manualRows}×${state.generation.manualCols})`;
+      }
+
+      function syncStateToForm() {
+        const m = state.meta;
+        document.getElementById('cfg-title').value = m.title;
+        document.getElementById('cfg-subtitle').value = m.subtitle;
+        document.getElementById('cfg-description').value = m.description;
+        document.getElementById('cfg-instructions').value = m.instructions;
+        document.getElementById('cfg-institution').value = m.institution;
+        document.getElementById('cfg-creator').value = m.creator;
+        document.getElementById('cfg-subject').value = m.subject;
+        document.getElementById('cfg-grade').value = m.grade;
+        document.getElementById('cfg-student').value = m.student;
+        document.getElementById('cfg-group').value = m.group;
+        document.getElementById('cfg-date').value = m.date;
+        document.getElementById('cfg-show-student-line').checked = m.showStudentLines;
+        document.getElementById('cfg-footer-msg').value = m.footerMessage;
+        document.getElementById('cfg-footer-credit').checked = m.includeDevCredit;
+
+        document.getElementById('words-input').value = state.wordsConfig.rawText;
+        document.getElementById('cfg-size-mode').value = state.wordsConfig.sizeMode;
+
+        document.querySelectorAll('#difficulty-segmented .seg-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.diff === state.generation.difficulty);
+        });
+        const dirs = state.generation.dirs;
+        document.getElementById('dir-h-fwd').checked = dirs.hFwd;
+        document.getElementById('dir-h-rev').checked = dirs.hRev;
+        document.getElementById('dir-v-fwd').checked = dirs.vFwd;
+        document.getElementById('dir-v-rev').checked = dirs.vRev;
+        document.getElementById('dir-d-down').checked = dirs.dDown;
+        document.getElementById('dir-d-up').checked = dirs.dUp;
+        document.getElementById('dir-allow-reversed').checked = dirs.allowReversed;
+        syncDimsUI();
+
+        document.getElementById('sol-style').value = state.solutionStyle.type;
+        document.getElementById('sol-multicolor').checked = state.solutionStyle.multicolor;
+
+        const gs = state.gridStyle;
+        document.getElementById('style-grid-font').value = gs.gridFont;
+        document.getElementById('style-grid-case').value = gs.gridCase;
+        document.getElementById('style-font-scale').value = gs.fontScale;
+        document.getElementById('val-font-scale').textContent = gs.fontScale + '%';
+        document.getElementById('style-cell-scale').value = gs.cellScale;
+        document.getElementById('val-cell-scale').textContent = gs.cellScale === 100 ? 'Auto' : gs.cellScale + '%';
+        document.getElementById('style-letter-color').value = gs.letterColor;
+        document.getElementById('hex-letter-color').textContent = gs.letterColor;
+        document.getElementById('style-cell-bg').value = gs.cellBg;
+        document.getElementById('hex-cell-bg').textContent = gs.cellBg;
+        document.getElementById('style-border-color').value = gs.borderColor;
+        document.getElementById('hex-border-color').textContent = gs.borderColor;
+        document.getElementById('style-border-width').value = gs.borderWidth;
+        document.getElementById('val-border-width').textContent = gs.borderWidth + ' px';
+        document.getElementById('style-cell-gap').value = gs.cellGap;
+        document.getElementById('val-cell-gap').textContent = gs.cellGap + ' px';
+        document.getElementById('style-cell-radius').value = String(gs.cellRadius);
+        document.getElementById('style-grid-bold').checked = gs.gridBold;
+        document.getElementById('style-show-borders').checked = gs.showBorders;
+
+        const wl = state.wordListStyle;
+        document.getElementById('list-cols').value = String(wl.cols);
+        document.getElementById('list-order').value = wl.order;
+        document.getElementById('list-marker').value = wl.marker;
+        document.getElementById('list-font-size').value = wl.fontSize;
+        document.getElementById('val-list-font').textContent = wl.fontSize + ' px';
+        document.getElementById('list-spacing').value = wl.spacing;
+        document.getElementById('val-list-spacing').textContent = wl.spacing + ' px';
+
+        const hs = state.headerStyle;
+        document.getElementById('hdr-theme-preset').value = hs.imageDataUrl ? 'custom' : (hs.themePreset || 'none');
+        document.getElementById('hdr-bg-color').value = hs.bgColor;
+        document.getElementById('hex-hdr-bg').textContent = hs.bgColor;
+        document.getElementById('hdr-title-color').value = hs.titleColor;
+        document.getElementById('hex-hdr-title').textContent = hs.titleColor;
+        document.getElementById('hdr-overlay-color').value = hs.overlayColor;
+        document.getElementById('hex-hdr-overlay').textContent = hs.overlayColor;
+        document.getElementById('hdr-overlay-opacity').value = hs.overlayOpacity;
+        document.getElementById('val-hdr-overlay-op').textContent = hs.overlayOpacity + '%';
+        document.getElementById('hdr-img-opacity').value = hs.imageOpacity;
+        document.getElementById('val-hdr-img-op').textContent = hs.imageOpacity + '%';
+        document.getElementById('hdr-height').value = hs.height;
+        document.getElementById('val-hdr-height').textContent = hs.height + ' px';
+        document.getElementById('hdr-width-mode').value = hs.widthMode;
+        document.getElementById('hdr-img-fit').value = hs.imgFit;
+        document.getElementById('hdr-img-pos-x').value = hs.imgPosX;
+        document.getElementById('val-hdr-pos-x').textContent = hs.imgPosX + '%';
+        document.getElementById('hdr-img-pos-y').value = hs.imgPosY;
+        document.getElementById('val-hdr-pos-y').textContent = hs.imgPosY + '%';
+        document.getElementById('hdr-title-align').value = hs.titleAlign;
+        document.getElementById('hdr-title-valign').value = hs.titleValign;
+        document.getElementById('hdr-title-size').value = hs.titleSize;
+        document.getElementById('val-hdr-title-size').textContent = hs.titleSize + ' px';
+        document.getElementById('hdr-title-font').value = hs.titleFont;
+        document.getElementById('hdr-logo-pos').value = hs.logoPos;
+
+        document.getElementById('page-orientation').value = state.page.orientation;
+        document.getElementById('page-margin').value = state.page.marginMm;
+        document.getElementById('val-page-margin').textContent = state.page.marginMm + ' mm';
+      }
+
+      /* =========================================================================
+       * 10. COMPRESIÓN SEGURA DE IMÁGENES LOCALES PARA LOCALSTORAGE
+       * ========================================================================= */
+      function readAndResizeImageFile(file, maxWidth, callback) {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const img = new Image();
+          img.onload = function () {
+            const ratio = Math.min(1, maxWidth / img.naturalWidth);
+            const cw = Math.round(img.naturalWidth * ratio);
+            const ch = Math.round(img.naturalHeight * ratio);
+            const c = document.createElement('canvas');
+            c.width = cw;
+            c.height = ch;
+            c.getContext('2d').drawImage(img, 0, 0, cw, ch);
+            const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+            callback(c.toDataURL(mime, 0.86));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      /* =========================================================================
+       * 11. RENDER DE VISTAS: MIS ACTIVIDADES Y PLANTILLAS
+       * ========================================================================= */
+      function renderSavedActivitiesView() {
+        const grid = document.getElementById('activities-list-grid');
+        const q = (document.getElementById('activities-search').value || '').trim().toLowerCase();
+        const all = getSavedActivities();
+        const filtered = q
+          ? all.filter(a => (a.meta.title || '').toLowerCase().includes(q) || (a.meta.subject || '').toLowerCase().includes(q))
+          : all;
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="panel-card" style="grid-column:1 / -1; padding:32px; text-align:center;">
+              <h3 style="margin:0 0 6px;">No hay actividades guardadas${q ? ' para esa búsqueda' : ''}</h3>
+              <p style="margin:0 0 14px; color:var(--text-secondary);">Haz clic en "Guardar actividad actual" para almacenar tu sopa de letras en este navegador.</p>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(act => {
+          const dateStr = new Date(act.updatedAt).toLocaleDateString('es-CO', {
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+          const wordCount = parseWordsInput(act.wordsConfig.rawText).uniqueValid.length;
+          const dims = act.puzzle && act.puzzle.ok ? `${act.puzzle.rows}×${act.puzzle.cols}` : 'Sin generar';
+
+          return `
+            <article class="item-card">
+              <div>
+                <div class="item-meta">${escapeHtml(act.meta.subject || 'General')} · ${wordCount} palabras · ${dims} · Ver. ${escapeHtml(act.versionLabel || 'A')}</div>
+                <h3>${escapeHtml(act.meta.title || 'Sin título')}</h3>
+                <p class="item-desc">${escapeHtml(act.meta.subtitle || act.meta.description || 'Sin descripción adicional.')}</p>
+                <div class="item-meta" style="margin-top:8px; margin-bottom:0;">Actualizado: ${escapeHtml(dateStr)}</div>
+              </div>
+              <div class="item-actions">
+                <button type="button" class="btn btn-primary btn-sm" data-act-load="${act.id}">Editar</button>
+                <button type="button" class="btn btn-sky btn-sm" data-act-dup="${act.id}">Duplicar</button>
+                <button type="button" class="btn btn-mint btn-sm" data-act-ver="${act.id}">Nueva versión</button>
+                <button type="button" class="btn btn-rose btn-sm" data-act-del="${act.id}">Eliminar</button>
+              </div>
+            </article>
+          `;
+        }).join('');
+
+        grid.querySelectorAll('[data-act-load]').forEach(b => b.onclick = () => {
+          const item = getSavedActivities().find(x => x.id === b.dataset.actLoad);
+          if (!item) return;
+          state = mergeDefaults(createDefaultState(), deepClone(item));
+          if (!state.puzzle || !state.puzzle.ok) {
+            state.puzzle = generatePuzzleObject(parseWordsInput(state.wordsConfig.rawText).uniqueValid, state.generation, state.page.orientation);
+          }
+          syncStateToForm();
+          updateWordValidationUI(parseWordsInput(state.wordsConfig.rawText));
+          switchView('editor');
+          requestPreviewRedraw();
+          showToast('Actividad cargada en el editor.', 'success');
+        });
+
+        grid.querySelectorAll('[data-act-dup]').forEach(b => b.onclick = () => {
+          const allItems = getSavedActivities();
+          const item = allItems.find(x => x.id === b.dataset.actDup);
+          if (!item) return;
+          const copy = deepClone(item);
+          copy.id = 'act_' + Date.now();
+          copy.meta.title = (copy.meta.title || 'Actividad') + ' (Copia)';
+          copy.updatedAt = Date.now();
+          allItems.unshift(copy);
+          setSavedActivities(allItems);
+          renderSavedActivitiesView();
+          showToast('Actividad duplicada.', 'success');
+        });
+
+        grid.querySelectorAll('[data-act-ver]').forEach(b => b.onclick = () => {
+          const allItems = getSavedActivities();
+          const item = allItems.find(x => x.id === b.dataset.actVer);
+          if (!item) return;
+          const copy = deepClone(item);
+          copy.id = 'act_' + Date.now();
+          const nextVer = copy.versionLabel === 'A' ? 'B' : copy.versionLabel === 'B' ? 'C' : 'Nueva';
+          copy.versionLabel = nextVer;
+          copy.meta.title = (copy.meta.title || 'Actividad').replace(/\s*\(Ver\..*?\)$/i, '') + ` (Ver. ${nextVer})`;
+          const parsed = parseWordsInput(copy.wordsConfig.rawText);
+          copy.puzzle = generatePuzzleObject(parsed.uniqueValid, copy.generation, copy.page.orientation);
+          copy.updatedAt = Date.now();
+          allItems.unshift(copy);
+          setSavedActivities(allItems);
+          renderSavedActivitiesView();
+          showToast(`Nueva versión (${nextVer}) creada con cuadrícula renovada.`, 'success');
+        });
+
+        grid.querySelectorAll('[data-act-del]').forEach(b => b.onclick = () => {
+          openConfirmModal(
+            'Eliminar actividad',
+            '¿Deseas eliminar permanentemente esta actividad guardada de tu navegador?',
+            () => {
+              const next = getSavedActivities().filter(x => x.id !== b.dataset.actDel);
+              setSavedActivities(next);
+              renderSavedActivitiesView();
+              showToast('Actividad eliminada.', 'info');
+            }
+          );
+        });
+      }
+
+      function saveCurrentActivityToLibrary() {
+        const parsed = parseWordsInput(state.wordsConfig.rawText);
+        if (!state.puzzle || !state.puzzle.ok) {
+          state.puzzle = generatePuzzleObject(parsed.uniqueValid, state.generation, state.page.orientation);
+        }
+        const list = getSavedActivities();
+        const copy = deepClone(state);
+        if (!copy.id) copy.id = 'act_' + Date.now();
+        state.id = copy.id;
+        copy.updatedAt = Date.now();
+
+        const idx = list.findIndex(x => x.id === copy.id);
+        if (idx >= 0) list[idx] = copy;
+        else list.unshift(copy);
+
+        try {
+          setSavedActivities(list);
+          showToast('Actividad guardada correctamente en "Mis Actividades".', 'success');
+          if (currentView === 'activities') renderSavedActivitiesView();
+        } catch (err) {
+          showToast('Memoria local llena (prueba reducir el tamaño de la imagen de encabezado).', 'error');
+        }
+      }
+
+      function renderTemplatesView() {
+        const themesGrid = document.getElementById('visual-themes-grid');
+        themesGrid.innerHTML = VISUAL_THEMES.map(th => `
+          <button type="button" class="swatch-card" data-theme-id="${th.id}">
+            <div class="swatch-bar">
+              ${th.swatches.map(c => `<span style="background:${c};"></span>`).join('')}
+            </div>
+            <div style="font-weight:700; font-size:14px; margin-bottom:4px;">${escapeHtml(th.name)}</div>
+            <div style="font-size:12.5px; color:var(--text-secondary);">${escapeHtml(th.desc)}</div>
+          </button>
+        `).join('');
+
+        themesGrid.querySelectorAll('[data-theme-id]').forEach(btn => {
+          btn.onclick = () => {
+            const theme = VISUAL_THEMES.find(t => t.id === btn.dataset.themeId);
+            if (!theme) return;
+            Object.assign(state.gridStyle, {
+              gridFont: theme.apply.gridFont,
+              gridBold: theme.apply.gridBold,
+              letterColor: theme.apply.letterColor,
+              cellBg: theme.apply.cellBg,
+              borderColor: theme.apply.borderColor,
+              borderWidth: theme.apply.borderWidth,
+              cellGap: theme.apply.cellGap,
+              cellRadius: theme.apply.cellRadius,
+              showBorders: theme.apply.showBorders
+            });
+            Object.assign(state.headerStyle, {
+              bgColor: theme.apply.headerBgColor,
+              titleColor: theme.apply.headerTitleColor,
+              overlayColor: theme.apply.headerOverlayColor,
+              overlayOpacity: theme.apply.headerOverlayOpacity,
+              titleFont: theme.apply.headerTitleFont
+            });
+            syncStateToForm();
+            switchView('editor');
+            requestPreviewRedraw();
+            showToast(`Tema "${theme.name}" aplicado.`, 'success');
+          };
+        });
+
+        const tplGrid = document.getElementById('templates-cards-grid');
+        tplGrid.innerHTML = EDUCATIONAL_TEMPLATES.map(tpl => `
+          <article class="item-card">
+            <div>
+              <div class="item-meta">${escapeHtml(tpl.subject)} · ${escapeHtml(tpl.grade)} · ${tpl.words.length} palabras</div>
+              <h3>${escapeHtml(tpl.title)}</h3>
+              <p class="item-desc">${escapeHtml(tpl.description)}</p>
+            </div>
+            <div class="item-actions">
+              <button type="button" class="btn btn-primary btn-sm" data-tpl-id="${tpl.id}">Usar esta plantilla</button>
+            </div>
+          </article>
+        `).join('');
+
+        tplGrid.querySelectorAll('[data-tpl-id]').forEach(btn => {
+          btn.onclick = () => {
+            const tpl = EDUCATIONAL_TEMPLATES.find(t => t.id === btn.dataset.tplId);
+            if (!tpl) return;
+            state.id = null;
+            state.meta.title = tpl.title;
+            state.meta.subtitle = tpl.subtitle;
+            state.meta.subject = tpl.subject;
+            state.meta.grade = tpl.grade;
+            state.meta.description = tpl.description;
+            state.wordsConfig.sizeMode = tpl.sizeMode;
+            state.wordsConfig.rawText = tpl.words.join('\n');
+            state.headerStyle.themePreset = tpl.themePreset;
+            state.headerStyle.imageDataUrl = '';
+            state.generation.autoSize = true;
+            applyDifficultyPreset(tpl.difficulty);
+            generateAutomaticInstructions();
+            syncStateToForm();
+            regenerateActivePuzzle(true);
+            switchView('editor');
+          };
+        });
+      }
+
+      /* =========================================================================
+       * 12. NAVEGACIÓN Y ENLACE DE EVENTOS
+       * ========================================================================= */
+      function switchView(viewId) {
+        currentView = viewId;
+        document.querySelectorAll('.view-section').forEach(sec => {
+          sec.classList.toggle('active', sec.id === `view-${viewId}`);
+        });
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.view === viewId);
+        });
+        if (viewId === 'activities') renderSavedActivitiesView();
+        if (viewId === 'preview' || viewId === 'editor') requestPreviewRedraw();
+      }
+
+      function bindAllEvents() {
+        // Navegación principal
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+          btn.addEventListener('click', () => switchView(btn.dataset.view));
+        });
+        document.getElementById('brand-home-btn').addEventListener('click', () => switchView('editor'));
+
+        // Pestañas del editor
+        document.querySelectorAll('.ed-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.ed-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+          });
+        });
+
+        // Toggle Página 1 / Página 2 en vista previa
+        const p1Btn = document.getElementById('prev-page-1-btn');
+        const p2Btn = document.getElementById('prev-page-2-btn');
+        p1Btn.addEventListener('click', () => {
+          currentPreviewPage = 1;
+          p1Btn.classList.add('active');
+          p2Btn.classList.remove('active');
+          requestPreviewRedraw();
+        });
+        p2Btn.addEventListener('click', () => {
+          currentPreviewPage = 2;
+          p2Btn.classList.add('active');
+          p1Btn.classList.remove('active');
+          requestPreviewRedraw();
+        });
+
+        // Switch Versión A / B
+        document.querySelectorAll('#ab-version-switch .seg-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.activeAB = btn.dataset.ab;
+            document.querySelectorAll('#ab-version-switch .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
+            requestPreviewRedraw();
+          });
+        });
+
+        // Inputs de Actividad (Pestaña 1)
+        const metaBindings = [
+          ['cfg-title', 'title'], ['cfg-subtitle', 'subtitle'],
+          ['cfg-description', 'description'], ['cfg-instructions', 'instructions'],
+          ['cfg-institution', 'institution'], ['cfg-creator', 'creator'],
+          ['cfg-subject', 'subject'], ['cfg-grade', 'grade'],
+          ['cfg-student', 'student'], ['cfg-group', 'group'],
+          ['cfg-date', 'date'], ['cfg-footer-msg', 'footerMessage']
+        ];
+        metaBindings.forEach(([id, key]) => {
+          document.getElementById(id).addEventListener('input', e => {
+            state.meta[key] = e.target.value;
+            requestPreviewRedraw();
+          });
+        });
+        document.getElementById('cfg-show-student-line').addEventListener('change', e => {
+          state.meta.showStudentLines = e.target.checked;
+          requestPreviewRedraw();
+        });
+        document.getElementById('cfg-footer-credit').addEventListener('change', e => {
+          state.meta.includeDevCredit = e.target.checked;
+          requestPreviewRedraw();
+        });
+        document.getElementById('auto-instructions-btn').addEventListener('click', generateAutomaticInstructions);
+
+        // Gestión de palabras (Pestaña 2)
+        let wordDebounce = null;
+        document.getElementById('words-input').addEventListener('input', e => {
+          state.wordsConfig.rawText = e.target.value;
+          clearTimeout(wordDebounce);
+          wordDebounce = setTimeout(() => regenerateActivePuzzle(false), 240);
+        });
+        document.getElementById('cfg-size-mode').addEventListener('change', e => {
+          state.wordsConfig.sizeMode = e.target.value;
+          updateWordValidationUI(parseWordsInput(state.wordsConfig.rawText));
+          saveDraftToStorage();
+        });
+        document.getElementById('words-sort-az-btn').addEventListener('click', () => {
+          const valid = parseWordsInput(state.wordsConfig.rawText).uniqueValid.map(w => w.display);
+          valid.sort((a, b) => a.localeCompare(b, 'es'));
+          state.wordsConfig.rawText = valid.join('\n');
+          document.getElementById('words-input').value = state.wordsConfig.rawText;
+          regenerateActivePuzzle(true);
+        });
+        document.getElementById('words-shuffle-btn').addEventListener('click', () => {
+          const valid = shuffleArray(parseWordsInput(state.wordsConfig.rawText).uniqueValid.map(w => w.display));
+          state.wordsConfig.rawText = valid.join('\n');
+          document.getElementById('words-input').value = state.wordsConfig.rawText;
+          regenerateActivePuzzle(true);
+        });
+        document.getElementById('words-dedupe-btn').addEventListener('click', () => {
+          const valid = parseWordsInput(state.wordsConfig.rawText).uniqueValid.map(w => w.display);
+          state.wordsConfig.rawText = valid.join('\n');
+          document.getElementById('words-input').value = state.wordsConfig.rawText;
+          regenerateActivePuzzle(true);
+        });
+        document.getElementById('words-clear-btn').addEventListener('click', () => {
+          openConfirmModal('Limpiar palabras', '¿Deseas vaciar toda la lista de palabras?', () => {
+            state.wordsConfig.rawText = '';
+            document.getElementById('words-input').value = '';
+            regenerateActivePuzzle();
+          });
+        });
+
+        // Dificultad y direcciones (Pestaña 3)
+        document.querySelectorAll('#difficulty-segmented .seg-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            applyDifficultyPreset(btn.dataset.diff);
+            syncStateToForm();
+            regenerateActivePuzzle(true);
+          });
+        });
+
+        const dirChecks = [
+          ['dir-h-fwd', 'hFwd'], ['dir-h-rev', 'hRev'],
+          ['dir-v-fwd', 'vFwd'], ['dir-v-rev', 'vRev'],
+          ['dir-d-down', 'dDown'], ['dir-d-up', 'dUp']
+        ];
+        dirChecks.forEach(([id, key]) => {
+          document.getElementById(id).addEventListener('change', e => {
+            state.generation.dirs[key] = e.target.checked;
+            state.generation.difficulty = 'personalizado';
+            syncStateToForm();
+            regenerateActivePuzzle();
+          });
+        });
+        document.getElementById('dir-allow-reversed').addEventListener('change', e => {
+          const on = e.target.checked;
+          state.generation.dirs.allowReversed = on;
+          state.generation.dirs.hRev = on;
+          state.generation.dirs.vRev = on;
+          state.generation.difficulty = 'personalizado';
+          syncStateToForm();
+          regenerateActivePuzzle();
+        });
+
+        document.getElementById('grid-auto-size').addEventListener('change', e => {
+          state.generation.autoSize = e.target.checked;
+          syncDimsUI();
+          regenerateActivePuzzle();
+        });
+        ['grid-rows', 'grid-cols'].forEach((id, idx) => {
+          document.getElementById(id).addEventListener('change', e => {
+            const val = Math.max(6, Math.min(32, parseInt(e.target.value, 10) || 15));
+            if (idx === 0) state.generation.manualRows = val;
+            else state.generation.manualCols = val;
+            syncDimsUI();
+            regenerateActivePuzzle();
+          });
+        });
+
+        document.getElementById('sol-style').addEventListener('change', e => {
+          state.solutionStyle.type = e.target.value;
+          requestPreviewRedraw();
+        });
+        document.getElementById('sol-multicolor').addEventListener('change', e => {
+          state.solutionStyle.multicolor = e.target.checked;
+          requestPreviewRedraw();
+        });
+
+        // Personalización cuadrícula y listado (Pestaña 4)
+        document.getElementById('style-grid-font').addEventListener('change', e => {
+          state.gridStyle.gridFont = e.target.value;
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-grid-case').addEventListener('change', e => {
+          state.gridStyle.gridCase = e.target.value;
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-font-scale').addEventListener('input', e => {
+          state.gridStyle.fontScale = parseInt(e.target.value, 10);
+          document.getElementById('val-font-scale').textContent = state.gridStyle.fontScale + '%';
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-cell-scale').addEventListener('input', e => {
+          state.gridStyle.cellScale = parseInt(e.target.value, 10);
+          document.getElementById('val-cell-scale').textContent = state.gridStyle.cellScale === 100 ? 'Auto' : state.gridStyle.cellScale + '%';
+          requestPreviewRedraw();
+        });
+        [
+          ['style-letter-color', 'letterColor', 'hex-letter-color'],
+          ['style-cell-bg', 'cellBg', 'hex-cell-bg'],
+          ['style-border-color', 'borderColor', 'hex-border-color']
+        ].forEach(([id, key, hexId]) => {
+          document.getElementById(id).addEventListener('input', e => {
+            state.gridStyle[key] = e.target.value;
+            document.getElementById(hexId).textContent = e.target.value;
+            requestPreviewRedraw();
+          });
+        });
+        document.getElementById('style-border-width').addEventListener('input', e => {
+          state.gridStyle.borderWidth = parseFloat(e.target.value);
+          document.getElementById('val-border-width').textContent = state.gridStyle.borderWidth + ' px';
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-cell-gap').addEventListener('input', e => {
+          state.gridStyle.cellGap = parseInt(e.target.value, 10);
+          document.getElementById('val-cell-gap').textContent = state.gridStyle.cellGap + ' px';
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-cell-radius').addEventListener('change', e => {
+          state.gridStyle.cellRadius = parseInt(e.target.value, 10);
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-grid-bold').addEventListener('change', e => {
+          state.gridStyle.gridBold = e.target.checked;
+          requestPreviewRedraw();
+        });
+        document.getElementById('style-show-borders').addEventListener('change', e => {
+          state.gridStyle.showBorders = e.target.checked;
+          requestPreviewRedraw();
+        });
+
+        document.getElementById('list-cols').addEventListener('change', e => {
+          state.wordListStyle.cols = parseInt(e.target.value, 10);
+          requestPreviewRedraw();
+        });
+        document.getElementById('list-order').addEventListener('change', e => {
+          state.wordListStyle.order = e.target.value;
+          requestPreviewRedraw();
+        });
+        document.getElementById('list-marker').addEventListener('change', e => {
+          state.wordListStyle.marker = e.target.value;
+          requestPreviewRedraw();
+        });
+        document.getElementById('list-font-size').addEventListener('input', e => {
+          state.wordListStyle.fontSize = parseFloat(e.target.value);
+          document.getElementById('val-list-font').textContent = state.wordListStyle.fontSize + ' px';
+          requestPreviewRedraw();
+        });
+        document.getElementById('list-spacing').addEventListener('input', e => {
+          state.wordListStyle.spacing = parseInt(e.target.value, 10);
+          document.getElementById('val-list-spacing').textContent = state.wordListStyle.spacing + ' px';
+          requestPreviewRedraw();
+        });
+
+        // Encabezado e imágenes (Pestaña 5)
+        document.getElementById('hdr-img-upload').addEventListener('change', e => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          readAndResizeImageFile(file, 1400, dataUrl => {
+            state.headerStyle.imageDataUrl = dataUrl;
+            document.getElementById('hdr-theme-preset').value = 'custom';
+            requestPreviewRedraw();
+            showToast('Imagen de encabezado cargada.', 'success');
+          });
+        });
+        document.getElementById('hdr-theme-preset').addEventListener('change', e => {
+          state.headerStyle.themePreset = e.target.value;
+          state.headerStyle.imageDataUrl = '';
+          requestPreviewRedraw();
+        });
+        document.getElementById('hdr-remove-img-btn').addEventListener('click', () => {
+          state.headerStyle.imageDataUrl = '';
+          state.headerStyle.themePreset = 'none';
+          document.getElementById('hdr-img-upload').value = '';
+          document.getElementById('hdr-theme-preset').value = 'none';
+          requestPreviewRedraw();
+          showToast('Imagen de encabezado quitada.', 'info');
+        });
+
+        document.getElementById('hdr-logo-upload').addEventListener('change', e => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          readAndResizeImageFile(file, 450, dataUrl => {
+            state.headerStyle.logoDataUrl = dataUrl;
+            requestPreviewRedraw();
+            showToast('Logotipo institucional cargado.', 'success');
+          });
+        });
+        document.getElementById('hdr-remove-logo-btn').addEventListener('click', () => {
+          state.headerStyle.logoDataUrl = '';
+          document.getElementById('hdr-logo-upload').value = '';
+          requestPreviewRedraw();
+        });
+        document.getElementById('hdr-logo-pos').addEventListener('change', e => {
+          state.headerStyle.logoPos = e.target.value;
+          requestPreviewRedraw();
+        });
+
+        [
+          ['hdr-bg-color', 'bgColor', 'hex-hdr-bg'],
+          ['hdr-title-color', 'titleColor', 'hex-hdr-title'],
+          ['hdr-overlay-color', 'overlayColor', 'hex-hdr-overlay']
+        ].forEach(([id, key, hexId]) => {
+          document.getElementById(id).addEventListener('input', e => {
+            state.headerStyle[key] = e.target.value;
+            document.getElementById(hexId).textContent = e.target.value;
+            requestPreviewRedraw();
+          });
+        });
+
+        [
+          ['hdr-overlay-opacity', 'overlayOpacity', 'val-hdr-overlay-op', '%'],
+          ['hdr-img-opacity', 'imageOpacity', 'val-hdr-img-op', '%'],
+          ['hdr-height', 'height', 'val-hdr-height', ' px'],
+          ['hdr-img-pos-x', 'imgPosX', 'val-hdr-pos-x', '%'],
+          ['hdr-img-pos-y', 'imgPosY', 'val-hdr-pos-y', '%'],
+          ['hdr-title-size', 'titleSize', 'val-hdr-title-size', ' px']
+        ].forEach(([id, key, valId, unit]) => {
+          document.getElementById(id).addEventListener('input', e => {
+            state.headerStyle[key] = parseInt(e.target.value, 10);
+            document.getElementById(valId).textContent = state.headerStyle[key] + unit;
+            requestPreviewRedraw();
+          });
+        });
+
+        [
+          ['hdr-width-mode', 'widthMode'],
+          ['hdr-img-fit', 'imgFit'],
+          ['hdr-title-align', 'titleAlign'],
+          ['hdr-title-valign', 'titleValign'],
+          ['hdr-title-font', 'titleFont']
+        ].forEach(([id, key]) => {
+          document.getElementById(id).addEventListener('change', e => {
+            state.headerStyle[key] = e.target.value;
+            requestPreviewRedraw();
+          });
+        });
+
+        // Hoja y Exportación (Pestaña 6 + Botones superiores)
+        document.getElementById('page-orientation').addEventListener('change', e => {
+          state.page.orientation = e.target.value;
+          regenerateActivePuzzle();
+        });
+        document.getElementById('page-margin').addEventListener('input', e => {
+          state.page.marginMm = parseInt(e.target.value, 10);
+          document.getElementById('val-page-margin').textContent = state.page.marginMm + ' mm';
+          requestPreviewRedraw();
+        });
+
+        document.getElementById('top-export-pdf-btn').addEventListener('click', () => exportPDF('both'));
+        document.getElementById('exp-pdf-both').addEventListener('click', () => exportPDF('both'));
+        document.getElementById('exp-pdf-act').addEventListener('click', () => exportPDF('activity'));
+        document.getElementById('exp-pdf-sol').addEventListener('click', () => exportPDF('solution'));
+        document.getElementById('exp-print-btn').addEventListener('click', printDirectly);
+        document.getElementById('exp-png-act').addEventListener('click', () => exportPNG('activity'));
+        document.getElementById('exp-png-sol').addEventListener('click', () => exportPNG('solution'));
+
+        document.getElementById('pv-dl-both').addEventListener('click', () => exportPDF('both'));
+        document.getElementById('pv-dl-act').addEventListener('click', () => exportPDF('activity'));
+        document.getElementById('pv-dl-sol').addEventListener('click', () => exportPDF('solution'));
+        document.getElementById('pv-print').addEventListener('click', printDirectly);
+        document.getElementById('pv-png-act').addEventListener('click', () => exportPNG('activity'));
+        document.getElementById('pv-png-sol').addEventListener('click', () => exportPNG('solution'));
+
+        // Acciones rápidas
+        document.getElementById('quick-save-btn').addEventListener('click', saveCurrentActivityToLibrary);
+        document.getElementById('save-current-in-lib-btn').addEventListener('click', saveCurrentActivityToLibrary);
+        document.getElementById('quick-regen-btn').addEventListener('click', () => regenerateActivePuzzle(true));
+        document.getElementById('regen-inside-btn').addEventListener('click', () => regenerateActivePuzzle(true));
+        document.getElementById('quick-ab-btn').addEventListener('click', generateABVersions);
+
+        document.getElementById('activities-search').addEventListener('input', renderSavedActivitiesView);
+
+        // Restablecer y limpiar
+        document.getElementById('reset-config-btn').addEventListener('click', () => {
+          openConfirmModal(
+            'Restablecer configuración visual',
+            'Se restablecerán los colores, fuentes y ajustes de diseño a los valores predeterminados, conservando tus palabras actuales.',
+            () => {
+              const keepWords = state.wordsConfig.rawText;
+              const keepTitle = state.meta.title;
+              state = createDefaultState();
+              state.wordsConfig.rawText = keepWords;
+              state.meta.title = keepTitle;
+              syncStateToForm();
+              regenerateActivePuzzle();
+              showToast('Configuración visual restablecida.', 'info');
+            }
+          );
+        });
+
+        document.getElementById('clear-editor-btn').addEventListener('click', () => {
+          openConfirmModal(
+            'Limpiar todo el editor',
+            'Se limpiará toda la actividad actual para empezar una nueva desde cero.',
+            () => {
+              state = createDefaultState();
+              state.meta.title = 'Nueva Sopa de Letras';
+              state.meta.subtitle = '';
+              state.meta.description = '';
+              state.wordsConfig.rawText = '';
+              syncStateToForm();
+              regenerateActivePuzzle();
+              showToast('Editor limpio.', 'info');
+            }
+          );
+        });
+      }
+
+      /* =========================================================================
+       * 13. ARRANQUE INICIAL
+       * ========================================================================= */
+      function init() {
+        loadDraftFromStorage();
+        renderTemplatesView();
+        syncStateToForm();
+        bindAllEvents();
+
+        const parsed = parseWordsInput(state.wordsConfig.rawText);
+        if (!state.puzzle || !state.puzzle.ok) {
+          state.puzzle = generatePuzzleObject(parsed.uniqueValid, state.generation, state.page.orientation);
+        }
+        updateWordValidationUI(parsed);
+        syncDimsUI();
+        redrawAllPreviews();
+
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => requestPreviewRedraw());
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
